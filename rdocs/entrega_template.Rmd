@@ -35,7 +35,7 @@ always_allow_html: yes
   \textbf{Lista 1}} \\
 \vskip 5em
 {\Large
-  Prof. Dr. Joãozinho} \\
+  Prof. Dr. George von Borries} \\
 \vskip 1em
 {\Large
   Aluno: Bruno Gondim Toledo} \\
@@ -44,7 +44,7 @@ always_allow_html: yes
   Matrícula: 15/0167636} \\
 \vskip 1em
 {\Large
-  Cálculo 1} \\
+  Tópicos 2} \\
 \vskip 1em
 {\Large
   1º/2024} \\
