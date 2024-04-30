@@ -204,7 +204,7 @@ Daqui, vemos que as regiões $\Omega_1$ e $\Omega_2$ foram definidas em função
 for(i in 1:10){
   x = rnorm(2)
   print(x)
-  v = (1/(2*pi)^(p/2)*det(S)^(1/20)*exp((-t((x-mu1)) %*% solve(S) %*% (x-mu1))/2)) / (1/(2*pi)^(p/2)*det(S)^(1/20)*exp((-t((x-mu2)) %*% solve(S) %*% (x-mu2))/2))
+  v = (1/(2*pi)^(p/2)*det(S)^(1/2)*exp((-t((x-mu1)) %*% solve(S) %*% (x-mu1))/2)) / (1/(2*pi)^(p/2)*det(S)^(1/20)*exp((-t((x-mu2)) %*% solve(S) %*% (x-mu2))/2))
   if (v > threshold) {
     print("A coordenada x pertence a Omega_1")
   } else {
