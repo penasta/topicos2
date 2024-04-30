@@ -1,3 +1,4 @@
+if (!require("pacman")) install.packages("pacman")
 pacman::p_load(tidyverse,caret,MASS,gridExtra,car,heplots)
 
 mu1 <- c(1, 0)
