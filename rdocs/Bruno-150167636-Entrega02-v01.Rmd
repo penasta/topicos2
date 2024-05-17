@@ -45,6 +45,12 @@ always_allow_html: yes
   Matrícula: 15/0167636} \\
 \vskip 1em
 {\Large
+  Aluno: Stefan Zurman Gonçalves} \\
+\vskip 1em
+{\Large
+  Matrícula: 19/0116994} \\
+\vskip 1em
+{\Large
   Tópicos 2} \\
 \vskip 1em
 {\Large
@@ -172,13 +178,16 @@ p = 2
 S = sigma
 for (i in 1:200){
   x = c(df$X1[i], df$X2[i])
-  v = append(v,(1/(2*pi)^(p/2)*det(S)^(1/20)*exp((-t((x-mu1)) %*% solve(S) %*% (x-mu1))/2)) / (1/(2*pi)^(p/2)*det(S)^(1/20)*exp((-t((x-mu2)) %*% solve(S) %*% (x-mu2))/2)))
+  v = append(v,(1/(2*pi)^(p/2)*det(S)^(1/2)*exp((-t((x-mu1)) %*% solve(S) %*% (x-mu1))/2)) /
+               (1/(2*pi)^(p/2)*det(S)^(1/2)*exp((-t((x-mu2)) %*% solve(S) %*% (x-mu2))/2)))
 }
 threshold = quantile(v, probs = 0.5)
 df$v = v
 df$grupo_NP <- factor(ifelse(df$v > threshold, 1, 2))
 
-df |> mutate(acerto = grupo == grupo_NP) |> summarise(acertos = sum(acerto), porcentagem = acertos/200)
+df |> 
+  mutate(acerto = grupo == grupo_NP) |>
+  summarise(acertos = sum(acerto), porcentagem = acertos/200)
 
 plot1 <- ggplot(df, aes(x = X1, y = X2, color = grupo)) +
   geom_point() +
@@ -204,7 +213,8 @@ Daqui, vemos que as regiões $\Omega_1$ e $\Omega_2$ foram definidas em função
 for(i in 1:10){
   x = rnorm(2)
   print(x)
-  v = (1/(2*pi)^(p/2)*det(S)^(1/2)*exp((-t((x-mu1)) %*% solve(S) %*% (x-mu1))/2)) / (1/(2*pi)^(p/2)*det(S)^(1/20)*exp((-t((x-mu2)) %*% solve(S) %*% (x-mu2))/2))
+  v = (1/(2*pi)^(p/2)*det(S)^(1/2)*exp((-t((x-mu1)) %*% solve(S) %*% (x-mu1))/2)) /
+    (1/(2*pi)^(p/2)*det(S)^(1/20)*exp((-t((x-mu2)) %*% solve(S) %*% (x-mu2))/2))
   if (v > threshold) {
     print("A coordenada x pertence a Omega_1")
   } else {
@@ -219,9 +229,44 @@ Desta, reforça-se o inferido em c). A fronteira de decisão se aproxima de $X1 
 
 # 4)
 
-```{r}
+$$
+\mathbb{P}(\mathbf{x}|\omega_1) \sim \mathbf{N_p}(\mu_1,\Sigma)
+$$
 
-```
+$$
+\mathbb{P}(\mathbf{x}|\omega_2) \sim \mathbf{N_p}(\mu_2,\Sigma)
+$$
+
+Temos
+
+$$f_1(\mathbf{x}) = \frac{1}{(2\pi)^{\frac{p}{2}}|\Sigma|^{\frac{1}{2}}}exp\{-\frac{1}{2}(\mathbf{x}-\mu_1)^T\Sigma^{-1}(\mathbf{x}-\mu_1)$$
+
+e
+
+$$f_2(\mathbf{x}) = \frac{1}{(2\pi)^{\frac{p}{2}}|\Sigma|^{\frac{1}{2}}}exp\{-\frac{1}{2}(\mathbf{x}-\mu_2)^T\Sigma^{-1}(\mathbf{x}-\mu_2)$$
+
+para um vetor de características $\mathbf{x}$.
+
+Assim:
+
+$$\frac{f_1(\mathbf{x})}{f_2(\mathbf{x})} = \frac{exp\{-\frac{1}{2}(\mathbf{x}-\mu_1)^T\Sigma^{-1}(\mathbf{x}-\mu_1)\}}{exp\{-\frac{1}{2}(\mathbf{x}-\mu_2)^T\Sigma^{-1}(\mathbf{x}-\mu_2)\}} $$
+
+Ainda,
+
+$$\mathcal{L}(\mathbf{x}) = ln(\frac{f_1(\mathbf{x})}{f_2(\mathbf{x})}) = -\frac{1}{2}(\mathbf{x}-\mu_1)^T\Sigma^{-1}(\mathbf{x}-\mu_1)+ \frac{1}{2}(\mathbf{x}-\mu_2)^T\Sigma^{-1}(\mathbf{x}-\mu_2)$$
+
+$$ = -\frac{1}{2} \mathbf{x}^T\Sigma^{-1}\mathbf{x}+\frac{1}{2}\mathbf{x}^T\Sigma^{-1}\mu_1+\frac{1}{2}\mu_1^T\Sigma^{-1}(\mathbf{x}-\mu_1)+\frac{1}{2}\mathbf{x}^T\Sigma^{-1}\mathbf{x}-\frac{1}{2}\mathbf{x}^T\Sigma^{-1}\mu_2-\frac{1}{2}\mu_2^T\Sigma^{-1}(\mathbf{x}-\mu_2)$$
+
+$$= \frac{1}{2}\mathbf{x}^T\Sigma^{-1}\mu_1-\frac{1}{2}\mathbf{x}^T\Sigma^{-1}\mu_2+\frac{1}{2}\mu_1^T\Sigma^{-1}\mathbf{x}-\frac{1}{2}\mu_1^T\Sigma^{-1}\mu_1-\frac{1}{2}\mu_2^T\Sigma^{-1}\mathbf{x}+\frac{1}{2}\mu_2^T\Sigma^{-1}\mu_2$$
+
+Como $(\mathbf{x}^T\Sigma^{-1}\mu_1)^T$ e $(\mathbf{x}^T\Sigma^{-1}\mu_2)^T$ são escalares, $\mathbf{x}^T\Sigma^{-1}\mu_1 = (\mathbf{x}^T\Sigma^{-1}\mu_1)^T$, e $\mathbf{x}^T\Sigma^{-1}\mu_2 = (\mathbf{x}^T\Sigma^{-1}\mu_2)^T = \mu_2^T\Sigma^{-1}\mathbf{x}$, uma vez que também $\Sigma^{-1}$ é simétrico. Assim,
+
+$$\mathcal{L}(\mathbf{x}) = \frac{1}{2}\mu_1^T\Sigma^{-1}\mathbf{x}+\frac{1}{2}\mu_1^T\Sigma^{-1}\mathbf{x}-\frac{1}{2}\mu_2^T\Sigma^{-1}\mathbf{x}-\frac{1}{2}\mu_2^T\Sigma^{-1}\mathbf{x}-\frac{1}{2}\mu_1^T\Sigma^{-1}\mu_1+\frac{1}{2}\mu_2^T\Sigma^{-1}\mu_2$$
+
+$$=-\frac{1}{2}(\mu_1^T\Sigma^{-1}\mu_1-\mu_2^T\Sigma^{-1}\mu_2) + (\mu_1-\mu_2)^T\Sigma^{-1}\mathbf{x}$$
+
+$= \beta_0 + \beta^T\mathbf{x}$. Logo, $\mathcal{L}(\mathbf{x})$ é linear em relação ao vetor de características $\mathbf{x}$
+$\square$
 
 \newpage
 
