@@ -56,6 +56,7 @@ library(ISLR)
 library(gclus)
 library(mlpack)
 library(rgl)
+pacman::p_load(tidyverse,caret,MASS,gridExtra,car,mlpack,gclus,caret,MASS,robCompositions,vcvComp)
 ```
 
 # 6
@@ -411,6 +412,204 @@ println("[Perceptron] accuracy : $(acc(Y_test,Y_pred))")
 
 \newpage
 
-# 9 (Stefan)
+# 9) Critério de Fisher
 
-# 10 (Stefan)
+O critério busca uma combinação linear das variáveis que maximiza a distância entre as médias das classes observadas. Outra interpretação é que o critério maximiza a razão das variâncias entre e dentro das classes, obtida pela projeção $\textbf{w}$. Queremos então maximizar
+
+$$
+J_F = \frac{||\textbf{w}^T(\textbf{m}_2-\textbf{m}_1) ||^2}{\textbf{w}^T\textbf{S}_W\textbf{w}}= \frac{\textbf{w}^T\textbf{S}_B\textbf{w}}{\textbf{w}^T\textbf{S}_W\textbf{w}},
+$$
+onde
+
+$$
+\textbf{S}_W = \frac{1}{n-2}    (n_1\hat\Sigma_1+n_2\hat\Sigma_2).
+$$
+O vetor $\textbf{w}$ pode ser obtido a partir do primeiro autovetor de $\textbf{S}_W^{-1}\textbf{S}_B$. A seguir está um exemplo no R da utilização do critério de Fisher para a separação do banco \textbf{bank}:
+
+
+```{r}
+p_load(vcvComp)
+data("bank")
+
+SB=cov.B(bank[,2:7], bank[,1])
+SW=cov.W(bank[,2:7], bank[,1]) 
+bank.eig <- eigen(solve(SW)%*% SB)
+bank.eig$values
+
+W <- bank.eig$vectors[,1]
+Z <- as.matrix(bank[,2:7])%*%W |>data.frame()|> mutate()
+colnames(Z) <- "Disciminante"
+
+Z |> ggplot(aes(x=Disciminante, y=runif(min=-0.05,max=0.05,nrow(bank)), colour=bank$Status))+geom_point()+xlab('Discriminante Linear de Fisher')+ylab('')+ylim(-1,1)
+```
+
+Percebe-se uma fácil distinção entre ambos os grupos com a projeção pelo critério de Fisher. Entretanto, o critério apenas fornece uma projeção onde a discriminação das classes é mais fácil. Para obter um critério de alocação, é necessário especificar uma fronteira $w_0$ e alocar $\textbf{x}$ a $\omega_1$ se
+
+$$
+\textbf{w}^T\textbf{x} + w_0 > 0.
+$$
+No caso de normalidade e homocedasticidade entre os grupos, utiliza-se
+
+$$
+\textbf{w} = \textbf{S}_W^{-1}(m_1-m_2)
+$$
+e
+
+$$
+w_0=-\frac{1}{2}(m_1+m_2)^T\textbf{S}_W^{-1}(m_1-m_2)-log\left( \frac{p(\omega_2)}{p(\omega_1)} \right)
+$$
+onde $p(\omega_2)$ e $p(\omega_1)$ são as probabilidades a priori de pertencimento ao grupo $p(\omega_2)$ e $p(\omega_1)$, respectivamente. No caso de normalidade, o $w_0$ especificado acima leva a uma solução ótima. Isso não é necessariamente verdade no caso de não normalidade. Voltando ao exemplo, podemos considerar as probabilidades a priori de ambos os grupos como 0.5. Assim, obtemos:
+
+
+```{r}
+bank0 <- bank[bank[,1] == 0,]
+bank1 <- bank[bank[,1] == 1,]
+#assumindo prioris iguais, log(p2/p1)=0
+m1 <- c(mean(bank0[,2]),mean(bank0[,3]),mean(bank0[,4]),
+        mean(bank0[,5]),mean(bank0[,6]),mean(bank0[,7]))
+m2 <- c(mean(bank1[,2]),mean(bank1[,3]),mean(bank1[,4]),
+        mean(bank1[,5]),mean(bank1[,6]),mean(bank1[,7]))
+W0 <- -1/2*(m1+m2)%*%solve(SW)%*%(m1-m2)
+W <- solve(SW)%*%(m1-m2)
+
+Crit <- as.matrix(bank[,2:7])%*%W + rep(W0,200)
+
+bank2 <- data.frame(Crit,alpha=runif(min=-0.05,max=0.05,nrow(bank)),
+                    colour=ifelse(bank[,1]==0,1,2))
+
+bank2 %>% ggplot(aes(x=Crit, y=alpha, colour=colour))+geom_point()+
+  xlab('Discriminante Linear de Fisher')+ylab('')+ylim(-1,1)+
+  geom_vline(xintercept = 0,colour = "red")
+```
+
+
+Ainda, é possível utilizar a função \textit{lda} do pacote \textit{MASS} para obter o discriminante linear de Fisher, como no exemplo abaixo:
+
+```{r}
+p_load(MASS)
+bank.lda <- lda(ifelse(Status==0,1,2) ~., bank)
+bank3 <- data.frame(Pred=predict(bank.lda)$x,alpha=runif(min=-0.05,max=0.05,nrow(bank)),
+                    colour=ifelse(bank[,1]==0,1,2))
+
+bank3 %>% ggplot(aes(x=LD1, y=alpha, colour=colour))+geom_point()+
+  xlab('Discriminante Linear de Fisher')+ylab('')+ylim(-1,1)+
+  geom_vline(xintercept = 0,colour = "red")
+```
+Note que há uma observação do grupo 1 classificada no grupo 2 com esse critério de discriminante.
+
+A principal vantagem da implementação no R é sua fácil aplicação, e fácil identificação de erros. Entretanto, segue como disvantagem a possibilidade do método ser mais devagar em casos de bancos de dados muito grandes.
+
+
+
+
+
+
+\newpage
+
+# 10) Critério de Mínimos Quadrados
+
+O critério se baseia em encontrar $\nu$ que minimiza a perda
+
+$$
+J_S=||\textbf{Y}\nu-\textbf{t}||^2
+$$
+onde
+$$
+\left[ \textbf{y}_i^T=(1,\textbf{x}_i^T), \textbf{x}_i \in \omega_1 ;\textbf{y}_i^T=(-1,-\textbf{x}_i^T), \textbf{x}_i \in \omega_2 \right ].
+$$ 
+
+
+Se $\textbf{Y}^T\textbf{Y}$ for não singular, 
+
+$$
+\nu=(\textbf{Y}^T\textbf{Y})^{-1}\textbf{Y}^T\textbf{t}.
+$$ 
+
+Outra solução pode ser obtida a partir da inversa generalizada de $\textbf{Y}, obtida por decomposição em valores singulares,
+
+$$
+\nu=\textbf{Y}^-\textbf{t}.
+$$ 
+Por fim, a função discriminante $f(x)$ é dada pela função
+
+$$
+f(\textbf{x})=\nu^T(1,\textbf{x})   .
+$$
+
+
+Uma vez que nenhum pacote foi encontrado para implementar esse critério, sua aplicação no R será feita a mão, a partir dos resultados a seguir:
+
+```{r}
+bank4 <- bank
+bank4$Status <- ifelse(bank4$Status==0,1,2)
+#coluna de uns
+bank4$Um <- rep(1,200)
+bank4 <- bank4[,c(1,8,2:7)]
+#invertendo as variáveis
+bank4$Um <- ifelse(bank4$Status==1,bank4$Um,-bank4$Um)
+bank4$Length <- ifelse(bank4$Status==1,bank4$Length,-bank4$Length)
+bank4$Left <- ifelse(bank4$Status==1,bank4$Left,-bank4$Left)
+bank4$Right <- ifelse(bank4$Status==1,bank4$Right,-bank4$Right)
+bank4$Bottom <- ifelse(bank4$Status==1,bank4$Bottom,-bank4$Bottom)
+bank4$Top <- ifelse(bank4$Status==1,bank4$Top,-bank4$Top)
+bank4$Diagonal <- ifelse(bank4$Status==1,bank4$Diagonal,-bank4$Diagonal)
+
+Y <- bank4[,2:8]
+t <- bank4[,1]
+
+SVDY <- svd(Y)
+Yinv <- SVDY$v%*%solve(diag(SVDY$d))%*%t(SVDY$u)
+
+nu1 <- Yinv%*%t
+
+bank4pred <- bank
+bank4pred$Um <- rep(1,200)
+bank4pred <- bank4pred[,c(1,8,2:7)]
+
+pred4 <- t(nu1)%*%t(bank4pred[,2:8])
+
+
+pred4 <-ifelse(pred4>0,1,2)
+table(pred4,bank4$Status)
+
+```
+
+Novamente, o critério apenas errou uma observação do grupo 1 no grupo 2. A fim de visualizar a função de discriminação, foi feito o mesmo exemplo com apenas duas variáveis:
+
+```{r}
+bank42 <- bank
+bank42$Status <- ifelse(bank42$Status==0,1,2)
+#coluna de uns
+bank42$Um <- rep(1,200)
+bank42 <- bank42[,c(1,8,2:3)]
+#invertendo as variáveis
+bank42$Um <- ifelse(bank42$Status==1,bank42$Um,-bank42$Um)
+bank42$Length <- ifelse(bank42$Status==1,bank42$Length,-bank42$Length)
+bank42$Left <- ifelse(bank42$Status==1,bank42$Left,-bank42$Left)
+
+Y2 <- bank42[,2:4]
+t2 <- bank42[,1]
+
+SVDY2 <- svd(Y2)
+Yinv2 <- SVDY2$v%*%solve(diag(SVDY2$d))%*%t(SVDY2$u)
+
+nu2 <- Yinv2%*%t2
+
+bank %>% ggplot(aes(x=Length, y=Left, colour=bank42$Status))+geom_jitter(width = 0.01, height = 0.01)+
+  xlab('Length')+ylab('Left')+
+  geom_abline(intercept = 12.15117,slope=(12.15117/22.1742),colour = "red")
+
+bank42pred <- bank
+bank42pred$Um <- rep(1,200)
+bank42pred <- bank42pred[,c(1,8,2:3)]
+
+pred42 <- t(nu2)%*%t(bank42pred[,2:4])
+
+
+pred42 <-ifelse(pred42>0,1,2)
+table(pred42,bank4$Status)
+
+```
+
+Agora é possível observar a função discriminante com o critério de mínimos quadrados. Note que por utilizar um número menor de observações, houveram mais erros de classificação. A principal desvantagem em utilizar o método no R é a falta de um pacote para tal, mas uma vez implementado manualmente, o código é fácil de executar.
+
