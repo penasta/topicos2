@@ -38,6 +38,10 @@ always_allow_html: yes
 {\Large
   Matrícula: 15/0167636} \\ [0.5cm]
 {\Large
+  Aluno: Stefan Zurman Gonçalves} \\[0.5cm]
+{\Large
+  Matrícula: 19/0116994} \\[0.5cm]
+{\Large
   Tópicos 2} \\ [0.5cm]
 {\Large
   1º/2024} \\[0.5cm]
