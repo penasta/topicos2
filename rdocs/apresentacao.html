@@ -99,7 +99,6 @@
     code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   </style>
   <link rel="stylesheet" href="apresentacao_files/libs/revealjs/dist/theme/quarto.css">
-  <link rel="stylesheet" href="styles.css">
   <link href="apresentacao_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
   <link href="apresentacao_files/libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
   <link href="apresentacao_files/libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
@@ -425,26 +424,69 @@ João Alberto de Rezende Alvares
 </div>
 
 </section>
-<section id="introdução" class="slide level2 scrollable">
+<section id="introdução" class="slide level2">
 <h2>Introdução</h2>
-<p>Florestas aleatórias, ou <em>Random Forest</em>, é uma técnica em que iremos partir da ideia de árvores aleatórias (<em>random trees</em>) para fazer um classificador robusto. Em poucas palavras, poderia ser descrita como combinar força bruta computacional com seleção de modelos de árvores gerados via bootstrap por meio de uma “votação”.</p>
-<p>O procedimento do algoritmo pode ser descrito como:</p>
+<div style="margin-top: 1em; font-size: 1em">
+<p>O que é floresta aleatória?</p>
+</div>
+<p>Floresta aleatória é um algoritmo de <em>Machine learning</em>, utilizado para realizar predições, que combina o resultado de múltiplas árvores de decisão criadas aleatoriamente com o objetivo de diminuir a variância e o viés no contexto dos métodos de árvores.</p>
+</section>
+<section id="introdução-1" class="slide level2">
+<h2>Introdução</h2>
+<div style="margin-top: 1em; font-size: 1em">
+<p>Árvore de decisão</p>
+</div>
+<p>Uma árvore de decisão é a forma mais básica entre os métodos baseados em árvore, muito utilizada em regressão e classificação, uma árvore de decisão consiste em segmentar o espaço composto pelas variáveis preditoras em regiões mais simples, nos quais a média (se a variável resposta for quantitativa) é utilizada como valor predito ou (caso categorizado) a classe da variável resposta com maior frequência, os modelos de árvores de decisão são atraentes pela simplicidade e fácil interpretação, contudo não possuem a precisão que outros métodos de classificação ou regressão alcançam.</p>
+</section>
+<section id="vantagens-e-desvantagens" class="slide level2">
+<h2>Vantagens e desvantagens</h2>
+<div style="margin-top: 1em; font-size: 1em">
+<p>sobre árvore de decisão:</p>
+</div>
+<div class="columns">
+<div class="column" style="width:50%;">
+<p>Vantagens</p>
 <div>
 <ul>
-<li class="fragment"><ol type="1">
-<li class="fragment">Definir o número de árvores a serem geradas (quanto mais, melhor);</li>
-</ol></li>
-<li class="fragment"><ol start="2" type="1">
-<li class="fragment">Colher uma amostra bootstrap de tamanho n dos dados de tamanho n;</li>
-</ol></li>
-<li class="fragment"><ol start="3" type="1">
-<li class="fragment">Aplicar o algoritmo de árvore aleatória para cada uma das árvores geradas;</li>
-</ol></li>
-<li class="fragment"><ol start="4" type="1">
-<li class="fragment">Colher os resultados das árvores e optar pelo melhor modelo (a moda entre as árvores).</li>
-</ol></li>
+<li class="fragment">São facilmente explicaveis;</li>
+<li class="fragment">Podem ser representadas graficamente com fácil interpretação;</li>
+<li class="fragment">Podem manupular preditores qualitativos sem a necessidade de variáveis <em>dummy</em>.</li>
 </ul>
 </div>
+</div><div class="column" style="width:50%;">
+<p>Desvantagens</p>
+<div>
+<ul>
+<li class="fragment">Não possuem o mesmo nível de precisão preditiva como outros modelos de regressão e classificação;</li>
+<li class="fragment">Não são robustas, ou seja, uma pequena mudança nos dados pode gerar uma grande mudança na árvore de estimação final.</li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+<section id="motivação" class="slide level2">
+<h2>Motivação</h2>
+<p>Uma forma de superar a baixa precisão das árvores de decisão é a utilização de métodos agregadoes que ajustam modelos poderosos, como floresta aleatória, que consegue uma grande melhoria no poder de predição mesmo comparando com outros modelos de classificação.</p>
+</section>
+<section id="procedimento" class="slide level2">
+<h2>Procedimento</h2>
+<div>
+<ul>
+<li class="fragment">Como na técnica <em>bagging</em>, construímos várias árvores a partir das amostras <em>bootstrap</em> do conjunto de testes.</li>
+<li class="fragment">Na construção de cada árvore, cada vez que uma divisão (ou corte) é considerada para alguma árvore, <strong>uma seleção aleatória dos preditores é escolhida</strong> como candidatos dos cortes ao invés de todos os preditores como normalmente é feito.</li>
+<li class="fragment">Essa abordagem tem como propósito reduzir a correlação entre as árvores, reduzindo a variância quando tiramos a média das árvores, já que a média tende a ser menor quando temos menor correlação entre as árvores.</li>
+<li class="fragment">A escolha do número de preditores que serão selecionados para cada corte, é tipicamente escolhida pela raiz quadrada do número total de preditores.</li>
+<li class="fragment">Florestas aleatórias fornecem uma melhoria em relação ao método <em>bagging</em>, já que a correlação entre as árvores diminui.</li>
+</ul>
+</div>
+</section>
+<section id="considerações" class="slide level2">
+<h2>Considerações</h2>
+<ul>
+<li><p>De forma geral, pode-se dizer que o procedimento introduz mais aleatoriedade e diversidade no processo de construção em relação ao método <em>bagging</em>.</p></li>
+<li><p>Intuitivamente, a utilização de florestas aleatórias para tomada de decisão corresponde à síntese da opinião de indivíduos com diferentes fontes de informação.</p></li>
+<li><p>Em geral, florestas aleatórias produzem resultados menos variáveis em relação ao método <em>bagging</em>, já que nesse método as árvores geradas podem ser muito semelhantes, dependendo de preditores fortes, o que não contribui para redução de variabilidade das predições, o que não acontece com florestas aleatórias.</p></li>
+</ul>
 </section>
 <section id="rotina" class="slide level2">
 <h2>Rotina</h2>
@@ -484,16 +526,6 @@ versicolor      0         36         3  0.07692308
 virginica       0          4        34  0.10526316</code></pre>
 </div>
 </div>
-<p>Matriz de confusão:</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href=""></a>rf[[<span class="st">"confusion"</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>           setosa versicolor virginica class.error
-setosa         33          0         0  0.00000000
-versicolor      0         36         3  0.07692308
-virginica       0          4        34  0.10526316</code></pre>
-</div>
-</div>
 </div>
 </div>
 </section>
@@ -504,10 +536,10 @@ virginica       0          4        34  0.10526316</code></pre>
 <div class="column" style="width:50%;">
 <p>Teste do modelo no conjunto de treino:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href=""></a><span class="fu">library</span>(caret)</span>
-<span id="cb5-2"><a href=""></a></span>
-<span id="cb5-3"><a href=""></a>p1 <span class="ot">&lt;-</span> <span class="fu">predict</span>(rf, train)</span>
-<span id="cb5-4"><a href=""></a><span class="fu">confusionMatrix</span>(p1, train<span class="sc">$</span> Species)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href=""></a><span class="fu">library</span>(caret)</span>
+<span id="cb3-2"><a href=""></a></span>
+<span id="cb3-3"><a href=""></a>p1 <span class="ot">&lt;-</span> <span class="fu">predict</span>(rf, train)</span>
+<span id="cb3-4"><a href=""></a><span class="fu">confusionMatrix</span>(p1, train<span class="sc">$</span> Species)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Confusion Matrix and Statistics
 
@@ -544,8 +576,8 @@ Balanced Accuracy              1.0            1.0000           1.0000</code></pr
 </div><div class="column" style="width:50%;">
 <p>Validação do modelo nos dados de teste:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href=""></a>p2 <span class="ot">&lt;-</span> <span class="fu">predict</span>(rf, test)</span>
-<span id="cb7-2"><a href=""></a><span class="fu">confusionMatrix</span>(p2, test<span class="sc">$</span> Species)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href=""></a>p2 <span class="ot">&lt;-</span> <span class="fu">predict</span>(rf, test)</span>
+<span id="cb5-2"><a href=""></a><span class="fu">confusionMatrix</span>(p2, test<span class="sc">$</span> Species)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Confusion Matrix and Statistics
 
@@ -582,13 +614,6 @@ Balanced Accuracy            1.000            0.9201           0.8988</code></pr
 </div>
 </div>
 </section>
-<section id="observações" class="slide level2">
-<h2>Observações</h2>
-<ul>
-<li><p>Vemos que o modelo em seu estado minimalista é extremamente simples de ser executado, e é uma modelagem extremamente robusta a <em>overfitting</em>, visto que irá gerar vários modelos (árvores) com dados <em>bootstrap</em> e selecionar o modelo que melhor se ajusta.</p></li>
-<li><p>Já está implementado na função o procedimento de tomar uma amostra <em>bootstrap</em> dos dados fornecidos para cada árvore automaticamente.</p></li>
-</ul>
-</section>
 <section id="parâmetros" class="slide level2">
 <h2>Parâmetros</h2>
 <ul>
@@ -598,16 +623,18 @@ Balanced Accuracy            1.000            0.9201           0.8988</code></pr
 </section>
 <section id="fine-tuning" class="slide level2">
 <h2>Fine tuning</h2>
+<div style="margin-top: 1em; font-size: 1em">
 <p>Se for o caso, também podemos fazer o <em>fine-tuning</em> dos parâmetros do modelo</p>
+</div>
 <div class="columns">
-<div class="column" style="width:33%;">
+<div class="column" style="width:50%;">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href=""></a>t <span class="ot">&lt;-</span> <span class="fu">tuneRF</span>(train[,<span class="sc">-</span><span class="dv">5</span>], train[,<span class="dv">5</span>],</span>
-<span id="cb9-2"><a href=""></a>       <span class="at">stepFactor =</span> <span class="fl">0.5</span>,</span>
-<span id="cb9-3"><a href=""></a>       <span class="at">plot =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb9-4"><a href=""></a>       <span class="at">ntreeTry =</span> <span class="dv">150</span>,</span>
-<span id="cb9-5"><a href=""></a>       <span class="at">trace =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb9-6"><a href=""></a>       <span class="at">improve =</span> <span class="fl">0.05</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href=""></a>t <span class="ot">&lt;-</span> <span class="fu">tuneRF</span>(train[,<span class="sc">-</span><span class="dv">5</span>], train[,<span class="dv">5</span>],</span>
+<span id="cb7-2"><a href=""></a>       <span class="at">stepFactor =</span> <span class="fl">0.5</span>,</span>
+<span id="cb7-3"><a href=""></a>       <span class="at">plot =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb7-4"><a href=""></a>       <span class="at">ntreeTry =</span> <span class="dv">150</span>,</span>
+<span id="cb7-5"><a href=""></a>       <span class="at">trace =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb7-6"><a href=""></a>       <span class="at">improve =</span> <span class="fl">0.05</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>mtry = 2  OOB error = 5.45% 
 Searching left ...
@@ -620,16 +647,39 @@ mtry = 1    OOB error = 5.45%
 <div class="cell-output-display">
 <div>
 <figure>
+<p><img data-src="apresentacao_files/figure-revealjs/unnamed-chunk-6-1.png" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</div><div class="column" style="width:50%;">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href=""></a><span class="fu">hist</span>(<span class="fu">treesize</span>(rf),</span>
+<span id="cb9-2"><a href=""></a>     <span class="at">main =</span> <span class="st">"No. of Nodes for the Trees"</span>,</span>
+<span id="cb9-3"><a href=""></a>     <span class="at">col =</span> <span class="st">"green"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure>
 <p><img data-src="apresentacao_files/figure-revealjs/unnamed-chunk-7-1.png" width="960"></p>
 </figure>
 </div>
 </div>
 </div>
-</div><div class="column" style="width:33%;">
+</div>
+</div>
+</section>
+<section id="importâncias" class="slide level2">
+<h2>Importâncias</h2>
+<div style="margin-top: 1em; font-size: 1em">
+<p>Podemos verificar a importância de cada variável para o modelo.</p>
+</div>
+<div class="columns">
+<div class="column" style="width:50%;">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href=""></a><span class="fu">hist</span>(<span class="fu">treesize</span>(rf),</span>
-<span id="cb11-2"><a href=""></a>     <span class="at">main =</span> <span class="st">"No. of Nodes for the Trees"</span>,</span>
-<span id="cb11-3"><a href=""></a>     <span class="at">col =</span> <span class="st">"green"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href=""></a><span class="fu">varImpPlot</span>(rf,</span>
+<span id="cb10-2"><a href=""></a>           <span class="at">sort =</span> T,</span>
+<span id="cb10-3"><a href=""></a>           <span class="at">n.var =</span> <span class="dv">10</span>,</span>
+<span id="cb10-4"><a href=""></a>           <span class="at">main =</span> <span class="st">"Top 10 - Variable Importance"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure>
@@ -637,21 +687,7 @@ mtry = 1    OOB error = 5.45%
 </figure>
 </div>
 </div>
-</div>
-</div><div class="column" style="width:33%;">
-<div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href=""></a><span class="fu">varImpPlot</span>(rf,</span>
-<span id="cb12-2"><a href=""></a>           <span class="at">sort =</span> T,</span>
-<span id="cb12-3"><a href=""></a>           <span class="at">n.var =</span> <span class="dv">10</span>,</span>
-<span id="cb12-4"><a href=""></a>           <span class="at">main =</span> <span class="st">"Top 10 - Variable Importance"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure>
-<p><img data-src="apresentacao_files/figure-revealjs/unnamed-chunk-9-1.png" width="960"></p>
-</figure>
-</div>
-</div>
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href=""></a><span class="fu">importance</span>(rf)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href=""></a><span class="fu">importance</span>(rf)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>             MeanDecreaseGini
 Sepal.Length         7.299621
@@ -660,13 +696,16 @@ Petal.Length        35.799244
 Petal.Width         27.318058</code></pre>
 </div>
 </div>
+</div><div class="column" style="width:50%;">
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img data-src="apresentacao_files/figure-revealjs/unnamed-chunk-9-1.png" width="960"></p>
+</figure>
 </div>
 </div>
-</section>
-<section id="importâncias" class="slide level2">
-<h2>Importâncias</h2>
-<div class="columns">
-<div class="column" style="width:50%;">
+</div>
 <div class="cell">
 <div class="cell-output-display">
 <div>
@@ -676,12 +715,135 @@ Petal.Width         27.318058</code></pre>
 </div>
 </div>
 </div>
+</div>
+</div>
+</section>
+<section id="implementações" class="slide level2">
+<h2>Implementações</h2>
+<div style="margin-top: 1em; font-size: 1em">
+<p>Uma rotina de classificação via <em>Random forest</em> poderia ser executada de forma análoga em <em>python</em> da seguinte forma:</p>
+</div>
+<div class="columns">
+<div class="column" style="width:50%;">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href=""></a><span class="fu">library</span>(reticulate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href=""></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb14-2"><a href=""></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb14-3"><a href=""></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
+<span id="cb14-4"><a href=""></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> confusion_matrix</span>
+<span id="cb14-5"><a href=""></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> RandomForestClassifier</span>
+<span id="cb14-6"><a href=""></a><span class="im">from</span> sklearn <span class="im">import</span> datasets</span>
+<span id="cb14-7"><a href=""></a></span>
+<span id="cb14-8"><a href=""></a>iris <span class="op">=</span> datasets.load_iris()</span>
+<span id="cb14-9"><a href=""></a>dados <span class="op">=</span> pd.DataFrame(data<span class="op">=</span>iris.data, columns<span class="op">=</span>iris.feature_names)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href=""></a>X <span class="op">=</span> dados</span>
+<span id="cb15-2"><a href=""></a>y <span class="op">=</span> iris.target</span>
+<span id="cb15-3"><a href=""></a>X_train, X_test, y_train, y_test <span class="op">=</span> train_test_split(X, y, test_size<span class="op">=</span><span class="fl">0.3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 </div><div class="column" style="width:50%;">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href=""></a>model <span class="op">=</span> RandomForestClassifier()</span>
+<span id="cb16-2"><a href=""></a>model.fit(X_train, y_train)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<style>#sk-container-id-1 {color: black;}#sk-container-id-1 pre{padding: 0;}#sk-container-id-1 div.sk-toggleable {background-color: white;}#sk-container-id-1 label.sk-toggleable__label {cursor: pointer;display: block;width: 100%;margin-bottom: 0;padding: 0.3em;box-sizing: border-box;text-align: center;}#sk-container-id-1 label.sk-toggleable__label-arrow:before {content: "▸";float: left;margin-right: 0.25em;color: #696969;}#sk-container-id-1 label.sk-toggleable__label-arrow:hover:before {color: black;}#sk-container-id-1 div.sk-estimator:hover label.sk-toggleable__label-arrow:before {color: black;}#sk-container-id-1 div.sk-toggleable__content {max-height: 0;max-width: 0;overflow: hidden;text-align: left;background-color: #f0f8ff;}#sk-container-id-1 div.sk-toggleable__content pre {margin: 0.2em;color: black;border-radius: 0.25em;background-color: #f0f8ff;}#sk-container-id-1 input.sk-toggleable__control:checked~div.sk-toggleable__content {max-height: 200px;max-width: 100%;overflow: auto;}#sk-container-id-1 input.sk-toggleable__control:checked~label.sk-toggleable__label-arrow:before {content: "▾";}#sk-container-id-1 div.sk-estimator input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-1 div.sk-label input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-1 input.sk-hidden--visually {border: 0;clip: rect(1px 1px 1px 1px);clip: rect(1px, 1px, 1px, 1px);height: 1px;margin: -1px;overflow: hidden;padding: 0;position: absolute;width: 1px;}#sk-container-id-1 div.sk-estimator {font-family: monospace;background-color: #f0f8ff;border: 1px dotted black;border-radius: 0.25em;box-sizing: border-box;margin-bottom: 0.5em;}#sk-container-id-1 div.sk-estimator:hover {background-color: #d4ebff;}#sk-container-id-1 div.sk-parallel-item::after {content: "";width: 100%;border-bottom: 1px solid gray;flex-grow: 1;}#sk-container-id-1 div.sk-label:hover label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-1 div.sk-serial::before {content: "";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: 0;}#sk-container-id-1 div.sk-serial {display: flex;flex-direction: column;align-items: center;background-color: white;padding-right: 0.2em;padding-left: 0.2em;position: relative;}#sk-container-id-1 div.sk-item {position: relative;z-index: 1;}#sk-container-id-1 div.sk-parallel {display: flex;align-items: stretch;justify-content: center;background-color: white;position: relative;}#sk-container-id-1 div.sk-item::before, #sk-container-id-1 div.sk-parallel-item::before {content: "";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: -1;}#sk-container-id-1 div.sk-parallel-item {display: flex;flex-direction: column;z-index: 1;position: relative;background-color: white;}#sk-container-id-1 div.sk-parallel-item:first-child::after {align-self: flex-end;width: 50%;}#sk-container-id-1 div.sk-parallel-item:last-child::after {align-self: flex-start;width: 50%;}#sk-container-id-1 div.sk-parallel-item:only-child::after {width: 0;}#sk-container-id-1 div.sk-dashed-wrapped {border: 1px dashed gray;margin: 0 0.4em 0.5em 0.4em;box-sizing: border-box;padding-bottom: 0.4em;background-color: white;}#sk-container-id-1 div.sk-label label {font-family: monospace;font-weight: bold;display: inline-block;line-height: 1.2em;}#sk-container-id-1 div.sk-label-container {text-align: center;}#sk-container-id-1 div.sk-container {/* jupyter's `normalize.less` sets `[hidden] { display: none; }` but bootstrap.min.css set `[hidden] { display: none !important; }` so we also need the `!important` here to be able to override the default hidden behavior on the sphinx rendered scikit-learn.org. See: https://github.com/scikit-learn/scikit-learn/issues/21755 */display: inline-block !important;position: relative;}#sk-container-id-1 div.sk-text-repr-fallback {display: none;}</style><div id="sk-container-id-1" class="sk-top-container"><div class="sk-text-repr-fallback"><pre>RandomForestClassifier()</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br>On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class="sk-container" hidden=""><div class="sk-item"><div class="sk-estimator sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-1" type="checkbox" checked=""><label for="sk-estimator-id-1" class="sk-toggleable__label sk-toggleable__label-arrow">RandomForestClassifier</label><div class="sk-toggleable__content"><pre>RandomForestClassifier()</pre></div></div></div></div></div>
+</div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href=""></a>y_pred <span class="op">=</span> model.predict(X_test)</span>
+<span id="cb17-2"><a href=""></a>confusion_matrix(y_test, y_pred)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>array([[16,  0,  0],
+       [ 0, 13,  2],
+       [ 0,  0, 14]], dtype=int64)</code></pre>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="definições" class="slide level2">
+<h2>Definições</h2>
+<p>As árvores podem ser representadas como <span class="math inline">\(h_1(\boldsymbol x),\;  h_2(\boldsymbol x),\; . . . ,\; h_K( \boldsymbol x)\)</span> na forma</p>
+<p><span class="math display">\[ \{ h \left( \boldsymbol x, \Theta_k \right), \; \; k = 1, \dots \}  \]</span></p>
+<p>onde <span class="math inline">\(\Theta_k \; \text{i.i.d}\)</span> são vetores aleatórios representando a escolha de <span class="math inline">\(p\)</span> entre os <span class="math inline">\(m\)</span> atributos de <span class="math inline">\(\boldsymbol X\)</span>.</p>
+<p>Normalmente, <span class="math inline">\(p \approx \sqrt m\)</span></p>
+</section>
+<section id="definições-1" class="slide level2">
+<h2>Definições</h2>
+<p><strong>1)</strong> A medida em que o número de árvores cresce, a média de acertos se estabiliza e a chance de cometer uma predição errada pode ser quantificada:</p>
+<p><span class="math display">\[  P_{\boldsymbol X, Y} \left(   P_{\Theta}( h(\boldsymbol X, \Theta) = Y)   - P_{\Theta} (h(\boldsymbol X, \Theta)  \neq Y) &lt; 0\right) \]</span></p>
+<ul>
+<li><span class="math inline">\(P_{\Theta}( h(\boldsymbol X, \Theta) = Y)\)</span> representa a probabilidade de que uma árvore acerte a predição de Y</li>
+</ul>
+</section>
+<section id="definições-2" class="slide level2">
+<h2>Definições</h2>
+<p><strong>2)</strong> A acurácia da random forest vai depender do “poder” de cada um dos classificadores individuais e da dependência entre eles.</p>
+<p>Um limite superior para o erro de generalização é dado por</p>
+<p><span class="math display">\[PE^* \le -\bar \rho(1 − s^2)/s^2 \]</span></p>
+<p>onde:</p>
+<ul>
+<li><p><span class="math inline">\(\boldsymbol s = E_{\boldsymbol X, Y} mr({\boldsymbol X, Y} )\)</span> é o “poder” das árvores <span class="math inline">\(h(\boldsymbol x, \Theta)\)</span></p></li>
+<li><p><span class="math inline">\(\bar \rho\)</span> pode ser entendido como a média entre as correlações das árvores.</p></li>
+</ul>
+</section>
+<section id="exemplo-alzheimer" class="slide level2">
+<h2>Exemplo Alzheimer</h2>
+<p>O dataset DARWIN (https://archive.ics.uci.edu/dataset/732/darwin) contém dados sobre a escrita a mão de pessoas afetadas pelo Alzheimer e de um grupo de controle, totalizando 174 observações. São 450 variáveis e o objetivo é distinguir pessoas afetadas (P) de pessoas saudáveis (H).</p>
+<div class="columns">
+<div class="column" style="width:50%;">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href=""></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb19-2"><a href=""></a></span>
+<span id="cb19-3"><a href=""></a>rf_model <span class="ot">&lt;-</span> <span class="fu">randomForest</span>(</span>
+<span id="cb19-4"><a href=""></a>  class <span class="sc">~</span> ., <span class="at">data =</span> train_data, </span>
+<span id="cb19-5"><a href=""></a>  <span class="at">ntree =</span> <span class="dv">500</span>, </span>
+<span id="cb19-6"><a href=""></a>  <span class="at">importance =</span> <span class="cn">TRUE</span></span>
+<span id="cb19-7"><a href=""></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</div><div class="column" style="width:50%;">
+<pre><code>No. of variables tried at each split: 21
+OOB estimate of  error rate: 13.57%
+
+Confusion matrix:
+   H  P class.error
+H 58 10   0.1470588
+P  9 63   0.1250000</code></pre>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>   H  P class.error
+H 58 10   0.1470588
+P  8 64   0.1111111</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Test error:8.82%"</code></pre>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="section" class="slide level2">
+<h2></h2>
+<div class="columns">
+<div class="column" style="width:50%;">
+<p>No gráfico abaixo é possível perceber como a escolha do número de variáveis em cada <em>split</em> faz diferença para o resultado final do modelo.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="apresentacao_files/figure-revealjs/unnamed-chunk-11-1.png" width="960"></p>
+<p><img data-src="apresentacao_files/figure-revealjs/unnamed-chunk-21-1.png" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</div><div class="column" style="width:50%;">
+<p>Ainda, podemos verficiar a acurácia do modelo pelo número de árvores:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img data-src="apresentacao_files/figure-revealjs/unnamed-chunk-22-1.png" width="960"></p>
 </figure>
 </div>
 </div>
@@ -689,53 +851,333 @@ Petal.Width         27.318058</code></pre>
 </div>
 </div>
 </section>
-<section id="implementações" class="slide level2">
-<h2>Implementações</h2>
-<p>Uma rotina de classificação via <em>Random forest</em> poderia ser executada de forma análoga da seguinte forma:</p>
+<section id="robustez-a-dados-contaminados" class="slide level2">
+<h2>Robustez a Dados Contaminados</h2>
+<p>Uma das vantagens das florestas aleatórias é sua robustez a pontos atípicos, ou outliers. O exemplo a seguir demonstra a robustez desses modelos a contaminações, além de compará-los a outros métodos de classificação:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href=""></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(randomForest)</span>
+<span id="cb23-2"><a href=""></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(caret,e1071,VGAM)</span>
+<span id="cb23-3"><a href=""></a></span>
+<span id="cb23-4"><a href=""></a>iris <span class="ot">&lt;-</span> iris <span class="sc">%&gt;%</span></span>
+<span id="cb23-5"><a href=""></a>  <span class="fu">mutate</span>(<span class="at">cor =</span> <span class="fu">ifelse</span>(Species <span class="sc">==</span> <span class="st">"setosa"</span>,<span class="dv">1</span>,<span class="fu">ifelse</span>(Species <span class="sc">==</span> <span class="st">"versicolor"</span>,<span class="dv">2</span>,<span class="dv">3</span>)))</span>
+<span id="cb23-6"><a href=""></a></span>
+<span id="cb23-7"><a href=""></a><span class="fu">set.seed</span>(<span class="dv">150167636</span>)</span>
+<span id="cb23-8"><a href=""></a>ind <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">2</span>, <span class="fu">nrow</span>(iris), <span class="at">replace =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb23-9"><a href=""></a>              <span class="at">prob =</span> <span class="fu">c</span>(<span class="fl">0.7</span>, <span class="fl">0.3</span>))</span>
+<span id="cb23-10"><a href=""></a>train <span class="ot">&lt;-</span> iris[ind<span class="sc">==</span><span class="dv">1</span>,]</span>
+<span id="cb23-11"><a href=""></a>test <span class="ot">&lt;-</span> iris[ind<span class="sc">==</span><span class="dv">2</span>,]</span>
+<span id="cb23-12"><a href=""></a></span>
+<span id="cb23-13"><a href=""></a></span>
+<span id="cb23-14"><a href=""></a></span>
+<span id="cb23-15"><a href=""></a>i<span class="ot">=</span><span class="dv">4</span> <span class="co">#Número de pontos contaminados</span></span>
+<span id="cb23-16"><a href=""></a>dadosPoluidos1 <span class="ot">&lt;-</span> train[train<span class="sc">$</span>cor<span class="sc">==</span><span class="dv">1</span>,]</span>
+<span id="cb23-17"><a href=""></a>dadosPoluidos1 <span class="ot">&lt;-</span> dadosPoluidos1[<span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(dadosPoluidos1),i,<span class="at">replace =</span> F),]</span>
+<span id="cb23-18"><a href=""></a></span>
+<span id="cb23-19"><a href=""></a>dadosPoluidos2 <span class="ot">&lt;-</span> train[train<span class="sc">$</span>cor<span class="sc">==</span><span class="dv">3</span>,]</span>
+<span id="cb23-20"><a href=""></a>dadosPoluidos2 <span class="ot">&lt;-</span> dadosPoluidos2[<span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(dadosPoluidos2),i,<span class="at">replace =</span> F),]</span>
+<span id="cb23-21"><a href=""></a></span>
+<span id="cb23-22"><a href=""></a>dadosPoluidos1<span class="sc">$</span>Petal.Length <span class="ot">&lt;-</span> dadosPoluidos1<span class="sc">$</span>Petal.Length <span class="sc">+</span> <span class="dv">5</span></span>
+<span id="cb23-23"><a href=""></a>dadosPoluidos1<span class="sc">$</span>Petal.Width <span class="ot">&lt;-</span> dadosPoluidos1<span class="sc">$</span>Petal.Width <span class="sc">+</span> <span class="fl">1.7</span></span>
+<span id="cb23-24"><a href=""></a></span>
+<span id="cb23-25"><a href=""></a>dadosPoluidos2<span class="sc">$</span>Petal.Length <span class="ot">&lt;-</span> dadosPoluidos2<span class="sc">$</span>Petal.Length <span class="sc">-</span> <span class="dv">4</span></span>
+<span id="cb23-26"><a href=""></a>dadosPoluidos2<span class="sc">$</span>Petal.Width <span class="ot">&lt;-</span> dadosPoluidos2<span class="sc">$</span>Petal.Width <span class="sc">-</span> <span class="fl">1.2</span></span>
+<span id="cb23-27"><a href=""></a></span>
+<span id="cb23-28"><a href=""></a>DadosExempOutTreino <span class="ot">&lt;-</span> <span class="fu">rbind</span>(train,dadosPoluidos1,dadosPoluidos2)</span>
+<span id="cb23-29"><a href=""></a><span class="co">#DadosExempOutTreino &lt;- DadosExempOutTreino[,-6]</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="robustez-a-dados-contaminados-1" class="slide level2">
+<h2>Robustez a Dados Contaminados</h2>
 <div class="columns">
 <div class="column" style="width:50%;">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href=""></a><span class="fu">library</span>(reticulate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img data-src="apresentacao_files/figure-revealjs/unnamed-chunk-24-1.png" width="960"></p>
+</figure>
 </div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href=""></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb16-2"><a href=""></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb16-3"><a href=""></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
-<span id="cb16-4"><a href=""></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> confusion_matrix</span>
-<span id="cb16-5"><a href=""></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> RandomForestClassifier</span>
-<span id="cb16-6"><a href=""></a><span class="im">from</span> sklearn <span class="im">import</span> datasets</span>
-<span id="cb16-7"><a href=""></a></span>
-<span id="cb16-8"><a href=""></a>iris <span class="op">=</span> datasets.load_iris()</span>
-<span id="cb16-9"><a href=""></a>dados <span class="op">=</span> pd.DataFrame(data<span class="op">=</span>iris.data, columns<span class="op">=</span>iris.feature_names)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href=""></a>X <span class="op">=</span> dados</span>
-<span id="cb17-2"><a href=""></a>y <span class="op">=</span> iris.target</span>
-<span id="cb17-3"><a href=""></a>X_train, X_test, y_train, y_test <span class="op">=</span> train_test_split(X, y, test_size<span class="op">=</span><span class="fl">0.3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div><div class="column" style="width:50%;">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href=""></a>model <span class="op">=</span> RandomForestClassifier()</span>
-<span id="cb18-2"><a href=""></a>model.fit(X_train, y_train)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<style>#sk-container-id-1 {color: black;}#sk-container-id-1 pre{padding: 0;}#sk-container-id-1 div.sk-toggleable {background-color: white;}#sk-container-id-1 label.sk-toggleable__label {cursor: pointer;display: block;width: 100%;margin-bottom: 0;padding: 0.3em;box-sizing: border-box;text-align: center;}#sk-container-id-1 label.sk-toggleable__label-arrow:before {content: "▸";float: left;margin-right: 0.25em;color: #696969;}#sk-container-id-1 label.sk-toggleable__label-arrow:hover:before {color: black;}#sk-container-id-1 div.sk-estimator:hover label.sk-toggleable__label-arrow:before {color: black;}#sk-container-id-1 div.sk-toggleable__content {max-height: 0;max-width: 0;overflow: hidden;text-align: left;background-color: #f0f8ff;}#sk-container-id-1 div.sk-toggleable__content pre {margin: 0.2em;color: black;border-radius: 0.25em;background-color: #f0f8ff;}#sk-container-id-1 input.sk-toggleable__control:checked~div.sk-toggleable__content {max-height: 200px;max-width: 100%;overflow: auto;}#sk-container-id-1 input.sk-toggleable__control:checked~label.sk-toggleable__label-arrow:before {content: "▾";}#sk-container-id-1 div.sk-estimator input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-1 div.sk-label input.sk-toggleable__control:checked~label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-1 input.sk-hidden--visually {border: 0;clip: rect(1px 1px 1px 1px);clip: rect(1px, 1px, 1px, 1px);height: 1px;margin: -1px;overflow: hidden;padding: 0;position: absolute;width: 1px;}#sk-container-id-1 div.sk-estimator {font-family: monospace;background-color: #f0f8ff;border: 1px dotted black;border-radius: 0.25em;box-sizing: border-box;margin-bottom: 0.5em;}#sk-container-id-1 div.sk-estimator:hover {background-color: #d4ebff;}#sk-container-id-1 div.sk-parallel-item::after {content: "";width: 100%;border-bottom: 1px solid gray;flex-grow: 1;}#sk-container-id-1 div.sk-label:hover label.sk-toggleable__label {background-color: #d4ebff;}#sk-container-id-1 div.sk-serial::before {content: "";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: 0;}#sk-container-id-1 div.sk-serial {display: flex;flex-direction: column;align-items: center;background-color: white;padding-right: 0.2em;padding-left: 0.2em;position: relative;}#sk-container-id-1 div.sk-item {position: relative;z-index: 1;}#sk-container-id-1 div.sk-parallel {display: flex;align-items: stretch;justify-content: center;background-color: white;position: relative;}#sk-container-id-1 div.sk-item::before, #sk-container-id-1 div.sk-parallel-item::before {content: "";position: absolute;border-left: 1px solid gray;box-sizing: border-box;top: 0;bottom: 0;left: 50%;z-index: -1;}#sk-container-id-1 div.sk-parallel-item {display: flex;flex-direction: column;z-index: 1;position: relative;background-color: white;}#sk-container-id-1 div.sk-parallel-item:first-child::after {align-self: flex-end;width: 50%;}#sk-container-id-1 div.sk-parallel-item:last-child::after {align-self: flex-start;width: 50%;}#sk-container-id-1 div.sk-parallel-item:only-child::after {width: 0;}#sk-container-id-1 div.sk-dashed-wrapped {border: 1px dashed gray;margin: 0 0.4em 0.5em 0.4em;box-sizing: border-box;padding-bottom: 0.4em;background-color: white;}#sk-container-id-1 div.sk-label label {font-family: monospace;font-weight: bold;display: inline-block;line-height: 1.2em;}#sk-container-id-1 div.sk-label-container {text-align: center;}#sk-container-id-1 div.sk-container {/* jupyter's `normalize.less` sets `[hidden] { display: none; }` but bootstrap.min.css set `[hidden] { display: none !important; }` so we also need the `!important` here to be able to override the default hidden behavior on the sphinx rendered scikit-learn.org. See: https://github.com/scikit-learn/scikit-learn/issues/21755 */display: inline-block !important;position: relative;}#sk-container-id-1 div.sk-text-repr-fallback {display: none;}</style><div id="sk-container-id-1" class="sk-top-container"><div class="sk-text-repr-fallback"><pre>RandomForestClassifier()</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br>On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class="sk-container" hidden=""><div class="sk-item"><div class="sk-estimator sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-1" type="checkbox" checked=""><label for="sk-estimator-id-1" class="sk-toggleable__label sk-toggleable__label-arrow">RandomForestClassifier</label><div class="sk-toggleable__content"><pre>RandomForestClassifier()</pre></div></div></div></div></div>
+<div>
+<figure>
+<p><img data-src="apresentacao_files/figure-revealjs/unnamed-chunk-25-1.png" width="960"></p>
+</figure>
 </div>
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href=""></a>y_pred <span class="op">=</span> model.predict(X_test)</span>
-<span id="cb19-2"><a href=""></a>confusion_matrix(y_test, y_pred)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="robustez-a-dados-contaminados-2" class="slide level2">
+<h2>Robustez a Dados Contaminados</h2>
+<div class="columns">
+<div class="column" style="width:50%;">
+<ul>
+<li>Random Forest</li>
+</ul>
+<div class="cell">
 <div class="cell-output cell-output-stdout">
-<pre><code>array([[10,  0,  0],
-       [ 0, 15,  0],
-       [ 0,  2, 18]], dtype=int64)</code></pre>
+<pre><code>Confusion Matrix and Statistics
+
+            Reference
+Prediction   setosa versicolor virginica
+  setosa         17          0         0
+  versicolor      0         10         2
+  virginica       0          1        10
+
+Overall Statistics
+                                          
+               Accuracy : 0.925           
+                 95% CI : (0.7961, 0.9843)
+    No Information Rate : 0.425           
+    P-Value [Acc &gt; NIR] : 3.546e-11       
+                                          
+                  Kappa : 0.8854          
+                                          
+ Mcnemar's Test P-Value : NA              
+
+Statistics by Class:
+
+                     Class: setosa Class: versicolor Class: virginica
+Sensitivity                  1.000            0.9091           0.8333
+Specificity                  1.000            0.9310           0.9643
+Pos Pred Value               1.000            0.8333           0.9091
+Neg Pred Value               1.000            0.9643           0.9310
+Prevalence                   0.425            0.2750           0.3000
+Detection Rate               0.425            0.2500           0.2500
+Detection Prevalence         0.425            0.3000           0.2750
+Balanced Accuracy            1.000            0.9201           0.8988</code></pre>
 </div>
+</div>
+</div><div class="column" style="width:50%;">
+<ul>
+<li>Regressão logística</li>
+</ul>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Confusion Matrix and Statistics
+
+            Reference
+Prediction   setosa versicolor virginica
+  setosa         17          0         0
+  versicolor      0          6         1
+  virginica       0          5        11
+
+Overall Statistics
+                                          
+               Accuracy : 0.85            
+                 95% CI : (0.7016, 0.9429)
+    No Information Rate : 0.425           
+    P-Value [Acc &gt; NIR] : 3.669e-08       
+                                          
+                  Kappa : 0.7697          
+                                          
+ Mcnemar's Test P-Value : NA              
+
+Statistics by Class:
+
+                     Class: setosa Class: versicolor Class: virginica
+Sensitivity                  1.000            0.5455           0.9167
+Specificity                  1.000            0.9655           0.8214
+Pos Pred Value               1.000            0.8571           0.6875
+Neg Pred Value               1.000            0.8485           0.9583
+Prevalence                   0.425            0.2750           0.3000
+Detection Rate               0.425            0.1500           0.2750
+Detection Prevalence         0.425            0.1750           0.4000
+Balanced Accuracy            1.000            0.7555           0.8690</code></pre>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="robustez-a-dados-contaminados-3" class="slide level2">
+<h2>Robustez a Dados Contaminados</h2>
+<div class="columns">
+<div class="column" style="width:50%;">
+<ul>
+<li>SVM linear</li>
+</ul>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Confusion Matrix and Statistics
+
+            Reference
+Prediction   setosa versicolor virginica
+  setosa         17          0         0
+  versicolor      0          9         1
+  virginica       0          2        11
+
+Overall Statistics
+                                          
+               Accuracy : 0.925           
+                 95% CI : (0.7961, 0.9843)
+    No Information Rate : 0.425           
+    P-Value [Acc &gt; NIR] : 3.546e-11       
+                                          
+                  Kappa : 0.8852          
+                                          
+ Mcnemar's Test P-Value : NA              
+
+Statistics by Class:
+
+                     Class: setosa Class: versicolor Class: virginica
+Sensitivity                  1.000            0.8182           0.9167
+Specificity                  1.000            0.9655           0.9286
+Pos Pred Value               1.000            0.9000           0.8462
+Neg Pred Value               1.000            0.9333           0.9630
+Prevalence                   0.425            0.2750           0.3000
+Detection Rate               0.425            0.2250           0.2750
+Detection Prevalence         0.425            0.2500           0.3250
+Balanced Accuracy            1.000            0.8918           0.9226</code></pre>
+</div>
+</div>
+</div><div class="column" style="width:50%;">
+<ul>
+<li>SVM radial</li>
+</ul>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Confusion Matrix and Statistics
+
+            Reference
+Prediction   setosa versicolor virginica
+  setosa         17          0         0
+  versicolor      0         10         1
+  virginica       0          1        11
+
+Overall Statistics
+                                          
+               Accuracy : 0.95            
+                 95% CI : (0.8308, 0.9939)
+    No Information Rate : 0.425           
+    P-Value [Acc &gt; NIR] : 2.026e-12       
+                                          
+                  Kappa : 0.9235          
+                                          
+ Mcnemar's Test P-Value : NA              
+
+Statistics by Class:
+
+                     Class: setosa Class: versicolor Class: virginica
+Sensitivity                  1.000            0.9091           0.9167
+Specificity                  1.000            0.9655           0.9643
+Pos Pred Value               1.000            0.9091           0.9167
+Neg Pred Value               1.000            0.9655           0.9643
+Prevalence                   0.425            0.2750           0.3000
+Detection Rate               0.425            0.2500           0.2750
+Detection Prevalence         0.425            0.2750           0.3000
+Balanced Accuracy            1.000            0.9373           0.9405</code></pre>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="robustez-a-dados-contaminados-4" class="slide level2">
+<h2>Robustez a Dados Contaminados</h2>
+<p>Comparando robustez de modelos com observações contaminadas</p>
+<p>Sem contaminações</p>
+
+<img data-src="apresentacao_files/figure-revealjs/unnamed-chunk-32-1.png" width="960" class="r-stretch"></section>
+<section id="robustez-a-dados-contaminados-5" class="slide level2">
+<h2>Robustez a Dados Contaminados</h2>
+<div class="columns">
+<div class="column" style="width:50%;">
+<p>2 contaminações</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img data-src="apresentacao_files/figure-revealjs/unnamed-chunk-33-1.png" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</div><div class="column" style="width:50%;">
+<p>4 contaminações</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img data-src="apresentacao_files/figure-revealjs/unnamed-chunk-34-1.png" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="robustez-a-dados-contaminados-6" class="slide level2">
+<h2>Robustez a Dados Contaminados</h2>
+<div class="columns">
+<div class="column" style="width:50%;">
+<p>6 contaminações</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img data-src="apresentacao_files/figure-revealjs/unnamed-chunk-35-1.png" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</div><div class="column" style="width:50%;">
+<p>8 contaminações</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img data-src="apresentacao_files/figure-revealjs/unnamed-chunk-36-1.png" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="vantagens-e-desvantagens-1" class="slide level2">
+<h2>Vantagens e desvantagens</h2>
+<div style="margin-top: 1em; font-size: 1em">
+<p>sobre classificação por florestas aleatórias:</p>
+</div>
+<div class="columns">
+<div class="column" style="width:50%;">
+<p>Vantagens</p>
+<div>
+<ul>
+<li class="fragment">Robusto contra overfitting;</li>
+<li class="fragment">Trabalha bem com dados de alta dimesão;</li>
+<li class="fragment">Consegue captar relações não-lineares nos dados;</li>
+<li class="fragment">Fornece uma medida de importância;</li>
+<li class="fragment">Robusto contra outliers e ruídos;</li>
+<li class="fragment">Consegue lidar com dados faltantes.</li>
+</ul>
+</div>
+</div><div class="column" style="width:50%;">
+<p>Desvantagens</p>
+<div>
+<ul>
+<li class="fragment">Dificil interpretação;</li>
+<li class="fragment">Não adequado para dados escassos;</li>
+<li class="fragment">Demora para fazer predições;</li>
+<li class="fragment">Requer ajuste de hiper-parâmetros.</li>
+</ul>
 </div>
 </div>
 </div>
 </section>
 <section id="referências" class="title-slide slide level1 center">
 <h1>Referências:</h1>
-<p>https://www.r-bloggers.com/2021/04/random-forest-in-r/</p>
+<ul>
+<li><p>Trevor Hastie, Robert Tibshirani, Gareth M. James, Daniela Witten. An introduction to Statistical Learning. Springer, 2013.</p></li>
+<li><p>Pedro A. Morettin, Julio M. Singer. Estatística e Ciência de Dados. USP, 2021.</p></li>
+<li><p>Finnstats. Randon Forest in R. Acessado em junho de 2024. Link: https://www.r-bloggers.com/2021/04/random-forest-in-r/</p></li>
+<li><p>Breiman, L. Random Forests. Machine Learning <strong>45</strong>, 5–32 (2001)</p></li>
+</ul>
 <div class="quarto-auto-generated-content">
-<p><img src="as_vert_cor.jpg" class="slide-logo"></p>
 <div class="footer footer-default">
 <p>Departamento de estatística - UnB</p>
 </div>

@@ -1,0 +1,852 @@
+---
+title: "Técnica Random Forest em árvores de decisão"
+subtitle: "Grupo 4"
+author:
+  - name: Bruno Gondim Toledo
+    url: https://github.com/penasta
+  - name: Stefan Zurman Gonçalves
+  - name: João Pedro Almeida Santos
+  - name: João Alberto de Rezende Alvares
+format:
+  pdf: 
+    slide-number: true
+    chalkboard: 
+      buttons: true
+    preview-links: auto
+    scrollable: true
+    theme: serif
+    width: 1500
+    footer: Departamento de estatística - UnB
+editor_options: 
+  chunk_output_type: console
+knitr:
+  opts_chunk:
+    dev: png
+    dev.args:
+      bg: transparent
+---
+
+```{r, include=FALSE}
+options(repos='http://cran.rstudio.org')
+have.packages <- installed.packages()
+cran.packages <- c('devtools','plotrix','randomForest','tree')
+to.install <- setdiff(cran.packages, have.packages[,1])
+if(length(to.install)>0) install.packages(to.install)
+
+library(devtools)
+if(!('reprtree' %in% installed.packages())){
+   install_github('munoztd0/reprtree')
+}
+for(p in c(cran.packages, 'reprtree')) eval(substitute(library(pkg), list(pkg=p)))
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(tidyverse, randomForest,randomForest,reprtree,
+               reshape2,latex2exp,caret)
+```
+
+## Introdução
+
+::: {style="margin-top: 1em; font-size: 1em"}
+O que é floresta aleatória?
+::: 
+
+Floresta aleatória é um algoritmo de *Machine learning*, utilizado para realizar predições, que combina o resultado de múltiplas árvores de decisão criadas aleatoriamente com o objetivo de diminuir a variância e o viés no contexto dos métodos de árvores.
+
+## Introdução
+
+::: {style="margin-top: 1em; font-size: 1em"}
+Árvore de decisão
+::: 
+
+Uma árvore de decisão é a forma mais básica entre os métodos baseados em árvore, muito utilizada em regressão e classificação, uma árvore de decisão consiste em segmentar o espaço composto pelas variáveis preditoras em regiões mais simples, nos quais a média (se a variável resposta for quantitativa) é utilizada como valor predito ou (caso categorizado) a classe da variável resposta com maior frequência, os modelos de árvores de decisão são atraentes pela simplicidade e fácil interpretação, contudo não possuem a precisão que outros métodos de classificação ou regressão alcançam.
+
+## Vantagens e desvantagens
+
+::: {style="margin-top: 1em; font-size: 1em"}
+sobre árvore de decisão:
+::: 
+
+::: columns
+::: {.column width="50%"}
+
+Vantagens
+
+::: incremental
+- São facilmente explicaveis;
+- Podem ser representadas graficamente com fácil interpretação;
+- Podem manupular preditores qualitativos sem a necessidade de variáveis *dummy*.
+:::
+
+:::
+
+::: {.column width="50%"}
+
+Desvantagens
+
+::: incremental
+- Não possuem o mesmo nível de precisão preditiva como outros modelos de regressão e classificação;
+- Não são robustas, ou seja, uma pequena mudança nos dados pode gerar uma grande mudança na árvore de estimação final.
+:::
+
+:::
+:::
+
+## Motivação
+
+Uma forma de superar a baixa precisão das árvores de decisão é a utilização de métodos agregadoes que ajustam modelos poderosos, como floresta aleatória, que consegue uma grande melhoria no poder de predição mesmo comparando com outros modelos de classificação.
+
+## Procedimento
+
+::: incremental
+- Como na técnica *bagging*, construímos várias árvores a partir das amostras *bootstrap* do conjunto de testes.
+- Na construção de cada árvore, cada vez que uma divisão (ou corte) é considerada para alguma árvore, **uma seleção aleatória dos preditores é escolhida** como candidatos dos cortes ao invés de todos os preditores como normalmente é feito.
+- Essa abordagem tem como propósito reduzir a correlação entre as árvores, reduzindo a variância quando tiramos a média das árvores, já que a média tende a ser menor quando temos menor correlação entre as árvores.
+- A escolha do número de preditores que serão selecionados para cada corte, é tipicamente escolhida pela raiz quadrada do número total de preditores.
+- Florestas aleatórias fornecem uma melhoria em relação ao método *bagging*, já que a correlação entre as árvores diminui.
+:::
+
+## Considerações
+
+- De forma geral, pode-se dizer que o procedimento introduz mais aleatoriedade e diversidade no processo de construção em relação ao método *bagging*.
+
+- Intuitivamente, a utilização de florestas aleatórias para tomada de decisão corresponde à síntese da opinião de indivíduos com diferentes fontes de informação.
+
+- Em geral, florestas aleatórias produzem resultados menos variáveis em relação ao método *bagging*, já que nesse método as árvores geradas podem ser muito semelhantes, dependendo de preditores fortes, o que não contribui para redução de variabilidade das predições, o que não acontece com florestas aleatórias.
+
+## Rotina
+
+Uma rotina minimalista de classificação via *Random Forest* em **R** pode ser executada da seguinte forma:
+
+::: columns
+
+::: {.column width="50%"}
+
+```{r, cache=TRUE}
+#| echo: TRUE
+
+library(randomForest)
+
+data <- iris
+
+data$Species <- as.factor(data$Species)
+
+set.seed(150167636)
+ind <- sample(2, nrow(data), replace = TRUE,
+              prob = c(0.7, 0.3))
+train <- data[ind==1,]
+test <- data[ind==2,]
+
+rf <- randomForest(Species~., data=train, proximity=TRUE)
+
+```
+
+:::
+
+::: {.column width="50%"}
+
+```{r}
+rf
+```
+
+:::
+
+:::
+
+## Resultados
+
+Podemos acessar os resultados do modelo no objeto *rf*
+
+::: columns
+
+::: {.column width="50%"}
+
+Teste do modelo no conjunto de treino:
+
+```{r}
+#| echo: true
+
+library(caret)
+
+p1 <- predict(rf, train)
+confusionMatrix(p1, train$ Species)
+```
+
+:::
+
+::: {.column width="50%"}
+
+Validação do modelo nos dados de teste:
+
+```{r}
+#| echo: true
+
+p2 <- predict(rf, test)
+confusionMatrix(p2, test$ Species)
+
+```
+
+:::
+:::
+
+## Parâmetros
+
+- A função *randomForest* do pacote homônimo tem uma série de parâmetros opcionais além do mínimo obrigatório, que seria o modelo e os dados. O mais importante destes parâmetros é o *ntree*, que por *default* é 500 e em geral deve-se utilizar o máximo possível tal que execute em um tempo aceitável. Em geral, o restante dos parâmetros deve ser deixado em *default*.
+
+- Neste caso, o modelo foi extremamente eficiente mesmo na versão minimalista
+
+## Fine tuning
+
+::: {style="margin-top: 1em; font-size: 1em"}
+Se for o caso, também podemos fazer o *fine-tuning* dos parâmetros do modelo
+::: 
+
+::: columns
+
+::: {.column width="50%"}
+
+```{r}
+#| echo: true
+
+t <- tuneRF(train[,-5], train[,5],
+       stepFactor = 0.5,
+       plot = TRUE,
+       ntreeTry = 150,
+       trace = TRUE,
+       improve = 0.05)
+
+```
+
+:::
+
+::: {.column width="50%"}
+
+```{r}
+#| echo: true
+
+hist(treesize(rf),
+     main = "No. of Nodes for the Trees",
+     col = "green")
+
+```
+
+:::
+
+:::
+
+## Importâncias
+::: {style="margin-top: 1em; font-size: 1em"}
+Podemos verificar a importância de cada variável para o modelo.
+::: 
+
+::: columns
+
+::: {.column width="50%"}
+
+```{r}
+#| echo: true
+
+varImpPlot(rf,
+           sort = T,
+           n.var = 10,
+           main = "Top 10 - Variable Importance")
+
+importance(rf)
+
+```
+
+:::
+
+::: {.column width="50%"}
+
+```{r}
+partialPlot(rf, train, Petal.Width, "setosa")
+```
+
+```{r}
+MDSplot(rf, train$Species)
+```
+
+:::
+
+:::
+
+## Implementações
+
+::: {style="margin-top: 1em; font-size: 1em"}
+Uma rotina de classificação via *Random forest* poderia ser executada de forma análoga em *python* da seguinte forma:
+::: 
+
+::: columns
+
+::: {.column width="50%"}
+
+```{r}
+#| echo: true
+
+library(reticulate)
+```
+
+```{python}
+#| echo: true
+
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix
+from sklearn.ensemble import RandomForestClassifier
+from sklearn import datasets
+
+iris = datasets.load_iris()
+dados = pd.DataFrame(data=iris.data, columns=iris.feature_names)
+```
+
+```{python}
+#| echo: true
+
+X = dados
+y = iris.target
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+```
+
+:::
+
+::: {.column width="50%"}
+
+```{python}
+#| echo: true
+
+model = RandomForestClassifier()
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+confusion_matrix(y_test, y_pred)
+```
+
+:::
+:::
+
+## Definições
+
+As árvores podem ser representadas como $h_1(\boldsymbol x),\;  h_2(\boldsymbol x),\; . . . ,\; h_K( \boldsymbol x)$ na forma
+
+$$ \{ h \left( \boldsymbol x, \Theta_k \right), \; \; k = 1, \dots \}  $$
+
+onde $\Theta_k \; \text{i.i.d}$ são vetores aleatórios representando a escolha de $p$ entre os $m$ atributos de $\boldsymbol X$. 
+
+Normalmente, $p \approx \sqrt m$
+
+## Definições
+
+**1)** A medida em que o número de árvores cresce, a média de acertos se estabiliza e a chance de cometer uma predição errada pode ser quantificada:
+
+$$  P_{\boldsymbol X, Y} \left(   P_{\Theta}( h(\boldsymbol X, \Theta) = Y)   - P_{\Theta} (h(\boldsymbol X, \Theta)  \neq Y) < 0\right) $$
+
+- $P_{\Theta}( h(\boldsymbol X, \Theta) = Y)$ representa a probabilidade de que uma árvore acerte a predição de Y
+
+## Definições
+
+**2)** A acurácia da random forest vai depender do "poder" de cada um dos classificadores individuais e da dependência entre eles.
+
+Um limite superior para o erro de generalização é dado por 
+
+$$PE^* \le -\bar \rho(1 − s^2)/s^2 $$
+
+onde:
+
+- $\boldsymbol s = E_{\boldsymbol X, Y} mr({\boldsymbol X, Y} )$ é o "poder" das árvores $h(\boldsymbol x, \Theta)$
+
+- $\bar \rho$ pode ser entendido como a média entre as correlações das árvores.
+
+## Exemplo Alzheimer
+
+O dataset DARWIN (https://archive.ics.uci.edu/dataset/732/darwin) contém dados sobre a escrita a mão de pessoas afetadas pelo Alzheimer e de um grupo de controle, totalizando 174 observações. São 450 variáveis e o objetivo é distinguir pessoas afetadas (P) de pessoas saudáveis (H).
+
+::: {.columns}
+
+::: {.column width="50%"}
+
+```{r}
+#| echo: false
+
+data = read.csv('https://raw.githubusercontent.com/penasta/topicos2/main/arquivos/data.csv', header = TRUE)
+
+```
+
+```{r, cache=TRUE}
+#| echo: false
+
+set.seed(123)
+splitIndex <- createDataPartition(data$class, p = 0.8, list = FALSE)
+
+train_data <- data[splitIndex, ]  %>% dplyr::select(-`ID`)
+test_data <- data[-splitIndex, ]  %>% dplyr::select(-`ID`)
+```
+
+```{r, cache=TRUE}
+#| echo: false
+train_data$class <- as.factor(train_data$class)
+test_data$class <- as.factor(test_data$class)
+```
+
+```{r, results='hide', cache=TRUE}
+#| echo: true
+set.seed(123)
+
+rf_model <- randomForest(
+  class ~ ., data = train_data, 
+  ntree = 500, 
+  importance = TRUE
+  )
+```
+
+:::
+
+::: {.column width="50%"}
+
+```{}
+No. of variables tried at each split: 21
+OOB estimate of  error rate: 13.57%
+
+Confusion matrix:
+   H  P class.error
+H 58 10   0.1470588
+P  9 63   0.1250000
+```
+
+```{r, cache=TRUE}
+#| echo: false
+
+# Printa a matriz de confusão
+print(rf_model$confusion)
+
+
+# Prever com o modelo
+predictions <- predict(rf_model, test_data)
+
+# Avaliar a precisão
+accuracy <- mean(predictions == test_data$class)
+print(paste0("Test error:", round((1-accuracy)*100,2),"%"))
+```
+
+:::
+
+:::
+
+##
+
+::: {.columns}
+
+::: {.column width="50%"}
+
+No gráfico abaixo é possível perceber como a escolha do número de variáveis em cada *split* faz diferença para o resultado final do modelo. 
+
+```{r, cache=TRUE}
+#| echo: false
+# Definir os valores de mtry que queremos avaliar
+mtry_values <- seq(1, ncol(train_data) - 1)  # de 1 até o número de variáveis - 1
+
+# Vetor para armazenar as acurácias
+accuracy <- numeric(length(mtry_values))
+
+# Loop para ajustar o modelo e calcular a acurácia para cada valor de mtry
+for (i in seq_along(mtry_values)) {
+  rf_model <- randomForest(class ~ ., data = train_data, mtry = mtry_values[i], ntree = 500, importance = TRUE)
+  predictions <- predict(rf_model, test_data)
+  accuracy[i] <- mean(predictions == test_data$class)
+}
+
+
+# Criar um dataframe com os resultados
+results <- data.frame(mtry = mtry_values, accuracy = accuracy)
+```
+
+```{r, cache=TRUE}
+#| echo: false
+
+# Identificar o índice do ponto com maior acurácia
+best_index <- which.max(results$accuracy)
+max_accuracy <- max(results$accuracy)
+sqrt_accuracy <- results[round(sqrt(450)),]$accuracy
+sqrt_index <- results[round(sqrt(450)),]$mtry
+
+# Plotar a acurácia em função de mtry
+ggplot(results, aes(x = mtry, y = accuracy)) +
+  geom_smooth() +
+  geom_point(alpha = 0.1) +
+  geom_point(data = results[best_index, ], aes(x = mtry, y = accuracy), color = "red", size = 3) +
+    geom_point(data = results[sqrt_index, ], aes(x = mtry, y = accuracy), color = "blue", size = 3) +
+  annotate("text", x = best_index+100 , y = max_accuracy+0.03, label = "Maior Acurácia", color = "red", hjust = 1.5) +
+    annotate("text", x = sqrt_index+180 , y = sqrt_accuracy+0.02, label = TeX("Acurácia com  $p = \\sqrt{m}$"), color = "blue", hjust = 1.5) +
+  labs(title = "Acurácia no banco de teste em função de p",
+       x = "Número de Variáveis (p) em cada divisão",
+       y = "Acurácia") +
+  ylim(.7,1) +
+  theme_minimal()
+```
+
+:::
+
+::: {.column width="50%"}
+
+Ainda, podemos verficiar a acurácia do modelo pelo número de árvores:
+
+```{r, cache=TRUE}
+#| echo: false
+# Definir os valores de ntree que queremos avaliar
+ntree_values <- c(1, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000)
+
+# Vetor para armazenar as acurácias
+accuracy <- numeric(length(ntree_values))
+
+# Loop para ajustar o modelo e calcular a acurácia para cada valor de ntree
+for (i in seq_along(ntree_values)) {
+  rf_model <- randomForest(class ~ ., data = train_data, ntree = ntree_values[i])
+  predictions <- predict(rf_model, test_data)
+  accuracy[i] <- mean(predictions == test_data$class)
+}
+
+# Criar um dataframe com os resultados
+results <- data.frame(ntree = ntree_values, accuracy = accuracy)
+
+# Plotar a acurácia em função de ntree
+ggplot(results, aes(x = ntree, y = accuracy)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Acurácia do Random Forest em função de ntree",
+       x = "Número de Árvores (ntree)",
+       y = "Acurácia") +
+  theme_minimal() +
+  ylim(0,1)
+```
+
+:::
+
+:::
+
+## Robustez a Dados Contaminados
+
+Uma das vantagens das florestas aleatórias é sua robustez a pontos atípicos, ou outliers. O exemplo a seguir demonstra a robustez desses modelos a contaminações, além de compará-los a outros métodos de classificação:
+
+```{r, cache=TRUE, echo=TRUE}
+
+pacman::p_load(randomForest)
+pacman::p_load(caret,e1071,VGAM)
+
+iris <- iris %>%
+  mutate(cor = ifelse(Species == "setosa",1,ifelse(Species == "versicolor",2,3)))
+
+set.seed(150167636)
+ind <- sample(2, nrow(iris), replace = TRUE,
+              prob = c(0.7, 0.3))
+train <- iris[ind==1,]
+test <- iris[ind==2,]
+
+
+
+i=4 #Número de pontos contaminados
+dadosPoluidos1 <- train[train$cor==1,]
+dadosPoluidos1 <- dadosPoluidos1[sample(1:nrow(dadosPoluidos1),i,replace = F),]
+
+dadosPoluidos2 <- train[train$cor==3,]
+dadosPoluidos2 <- dadosPoluidos2[sample(1:nrow(dadosPoluidos2),i,replace = F),]
+
+dadosPoluidos1$Petal.Length <- dadosPoluidos1$Petal.Length + 5
+dadosPoluidos1$Petal.Width <- dadosPoluidos1$Petal.Width + 1.7
+
+dadosPoluidos2$Petal.Length <- dadosPoluidos2$Petal.Length - 4
+dadosPoluidos2$Petal.Width <- dadosPoluidos2$Petal.Width - 1.2
+
+DadosExempOutTreino <- rbind(train,dadosPoluidos1,dadosPoluidos2)
+#DadosExempOutTreino <- DadosExempOutTreino[,-6]
+```
+
+## Robustez a Dados Contaminados
+
+::: columns
+::: {.column width="50%"}
+```{r, cache=TRUE}
+#| echo: false
+ggplot(train) +
+  aes(x = Petal.Length, y =Petal.Width) +
+  geom_point(colour = train$cor, size = 3) +
+  labs(
+    x = "Petal.Length",
+    y = "Petal.Width"
+  ) +
+  theme_minimal()
+```
+:::
+
+::: {.column width="50%"}
+```{r, cache = TRUE}
+#| echo: false
+ggplot(DadosExempOutTreino) +
+  aes(x = Petal.Length, y =Petal.Width) +
+  geom_point(colour = DadosExempOutTreino$cor, size = 3) +
+  labs(
+    x = "Petal.Length",
+    y = "Petal.Width"
+  ) +
+  theme_minimal()
+```
+:::
+:::
+
+```{r, cache=TRUE}
+#| echo: false
+DadosExempOutTreino <- DadosExempOutTreino[,-6]
+rm(dadosPoluidos1,dadosPoluidos2,train,ind)
+```
+
+## Robustez a Dados Contaminados
+
+::: columns
+::: {.column width="50%"}
+
+- Random Forest
+
+```{r, cache=TRUE}
+#Árvore de decisão
+Outliersrf <- randomForest(Species~., data=DadosExempOutTreino, proximity=TRUE)
+PredOutliersrf <- predict(Outliersrf, test)
+confusionMatrix(PredOutliersrf, test$Species)
+```
+
+:::
+
+::: {.column width="50%"}
+
+- Regressão logística
+
+```{r}
+library(VGAM)
+#Reg Logística
+OutliersRegLog <- VGAM::vglm(Species ~., family=VGAM::multinomial(refLevel="setosa"), 
+             data=DadosExempOutTreino) 
+PredOutliersRegLog <- predict(OutliersRegLog,type="response",newdata = test)
+PredOutliersRegLog <- ifelse(PredOutliersRegLog[,1]>PredOutliersRegLog[,2] &
+                               PredOutliersRegLog[,1]>PredOutliersRegLog[,3],"setosa",
+                      ifelse(PredOutliersRegLog[,2]>PredOutliersRegLog[,1] &
+                               PredOutliersRegLog[,2]>PredOutliersRegLog[,3],"versicolor",
+                             "virginica"))
+PredOutliersRegLog <- factor(PredOutliersRegLog)
+confusionMatrix(PredOutliersRegLog, test$Species)
+```
+
+:::
+
+:::
+
+## Robustez a Dados Contaminados
+
+::: columns
+::: {.column width="50%"}
+
+- SVM linear
+
+```{r, cache=TRUE}
+#SVM
+#linear
+OutliersSVMlin <- svm(Species~., data=DadosExempOutTreino, kernel="linear")
+PredOutliersSVMlin <- predict(OutliersSVMlin, test)
+confusionMatrix(PredOutliersSVMlin, test$Species)
+```
+
+:::
+
+::: {.column width="50%"}
+
+
+- SVM radial
+
+```{r}
+#SVM
+#radial
+OutliersSVMrad <- e1071::svm(Species~., data=DadosExempOutTreino, kernel="radial")
+PredOutliersSVMrad <- predict(OutliersSVMrad, test)
+confusionMatrix(PredOutliersSVMrad, test$Species)
+```
+
+:::
+:::
+
+## Robustez a Dados Contaminados
+
+Comparando robustez de modelos com observações contaminadas
+
+```{r, cache=TRUE}
+#| echo: false
+Robust <- function(rep,ncont){
+  AccRF <- numeric()
+  AccSVMLin <- numeric()
+  AccSVMRad <- numeric()
+  AccRegLog <- numeric()
+  for (j in 1:rep){
+ind <- sample(2, nrow(iris), replace = TRUE,
+              prob = c(0.7, 0.3))
+trainRobust <- iris[ind==1,]
+testRobust <- iris[ind==2,]
+
+
+trainRobust <- trainRobust %>%
+  mutate(cor = ifelse(Species == "setosa",1,ifelse(Species == "versicolor",2,3)))
+
+i=ncont #Número de pontos contaminados
+dadosPoluidos1 <- trainRobust[trainRobust$cor==1,]
+dadosPoluidos1 <- dadosPoluidos1[sample(1:nrow(dadosPoluidos1),i,replace = F),]
+
+dadosPoluidos2 <- trainRobust[trainRobust$cor==3,]
+dadosPoluidos2 <- dadosPoluidos2[sample(1:nrow(dadosPoluidos2),i,replace = F),]
+
+dadosPoluidos1$Petal.Length <- dadosPoluidos1$Petal.Length + 5
+dadosPoluidos1$Petal.Width <- dadosPoluidos1$Petal.Width + 1.7
+
+dadosPoluidos2$Petal.Length <- dadosPoluidos2$Petal.Length - 4
+dadosPoluidos2$Petal.Width <- dadosPoluidos2$Petal.Width - 1.2
+
+DadosExempOutTreino <- rbind(trainRobust,dadosPoluidos1,dadosPoluidos2)
+
+DadosExempOutTreino <- DadosExempOutTreino[,-6]
+rm(dadosPoluidos1,dadosPoluidos2,trainRobust,ind)
+
+#Árvore de decisão
+Outliersrf <- randomForest(Species~., data=DadosExempOutTreino, proximity=TRUE)
+PredOutliersrf <- predict(Outliersrf, testRobust)
+AccRF[j] <- confusionMatrix(PredOutliersrf, testRobust$Species)$overall[1]
+
+#SVM
+#linear
+OutliersSVMlin <- svm(Species~., data=DadosExempOutTreino, kernel="linear")
+PredOutliersSVMlin <- predict(OutliersSVMlin, testRobust)
+AccSVMLin[j] <- confusionMatrix(PredOutliersSVMlin, testRobust$Species)$overall[1]
+
+#radial
+OutliersSVMrad <- svm(Species~., data=DadosExempOutTreino, kernel="radial")
+PredOutliersSVMrad <- predict(OutliersSVMrad, testRobust)
+AccSVMRad[j] <- confusionMatrix(PredOutliersSVMrad, testRobust$Species)$overall[1]
+
+#Reg Logística
+OutliersRegLog <- vglm(Species ~., family=multinomial(refLevel="setosa"), 
+                       data=DadosExempOutTreino) 
+PredOutliersRegLog <- predict(OutliersRegLog,type="response",newdata = testRobust)
+PredOutliersRegLog <- ifelse(PredOutliersRegLog[,1]>PredOutliersRegLog[,2] &
+                               PredOutliersRegLog[,1]>PredOutliersRegLog[,3],"setosa",
+                             ifelse(PredOutliersRegLog[,2]>PredOutliersRegLog[,1] &
+                                      PredOutliersRegLog[,2]>PredOutliersRegLog[,3],"versicolor",
+                                    "virginica"))
+PredOutliersRegLog <- factor(PredOutliersRegLog)
+AccRegLog[j] <- confusionMatrix(PredOutliersRegLog, testRobust$Species)$overall[1]
+  }
+  return(data.frame(AccRF,AccSVMLin,AccSVMRad,AccRegLog))
+}
+```
+
+Sem contaminações
+
+```{r, cache=TRUE}
+Simulações2 <- Robust(rep = 100,ncont = 0)
+
+boxplot(Simulações2)
+
+```
+
+## Robustez a Dados Contaminados
+
+::: columns
+::: {.column width="50%"}
+
+2 contaminações
+
+```{r, cache=TRUE}
+Simulações2 <- Robust(rep = 100,ncont = 2)
+
+boxplot(Simulações2)
+
+```
+
+:::
+
+::: {.column width="50%"}
+
+4 contaminações
+
+```{r, cache=TRUE}
+Simulações2 <- Robust(rep = 100,ncont = 4)
+
+boxplot(Simulações2)
+
+```
+
+:::
+
+:::
+
+## Robustez a Dados Contaminados
+
+::: columns
+
+::: {.column width="50%"}
+
+6 contaminações
+
+```{r, cache=TRUE}
+Simulações8 <- Robust(rep = 100,ncont = 6)
+
+boxplot(Simulações8)
+```
+
+:::
+
+::: {.column width="50%"}
+
+8 contaminações
+
+```{r, cache=TRUE}
+Simulações8 <- Robust(rep = 100,ncont = 8)
+
+boxplot(Simulações8)
+```
+
+:::
+:::
+
+## Vantagens e desvantagens
+
+::: {style="margin-top: 1em; font-size: 1em"}
+sobre classificação por florestas aleatórias:
+:::
+
+::: columns
+::: {.column width="50%"}
+Vantagens
+
+::: incremental
+-   Robusto contra overfitting;
+-   Trabalha bem com dados de alta dimesão;
+-   Consegue captar relações não-lineares nos dados;
+-   Fornece uma medida de importância;
+-   Robusto contra outliers e ruídos;
+-   Consegue lidar com dados faltantes.
+:::
+:::
+
+::: {.column width="50%"}
+Desvantagens
+
+::: incremental
+-   Dificil interpretação;
+-   Não adequado para dados escassos;
+-   Demora para fazer predições;
+-   Requer ajuste de hiper-parâmetros.
+:::
+:::
+:::
+
+# Referências:
+
+- Trevor Hastie, Robert Tibshirani, Gareth M. James, Daniela Witten. An introduction to Statistical Learning. Springer, 2013.
+
+- Pedro A. Morettin, Julio M. Singer. Estatística e Ciência de Dados. USP, 2021.
+
+- Finnstats. Randon Forest in R. Acessado em junho de 2024. Link: https://www.r-bloggers.com/2021/04/random-forest-in-r/
+
+- Breiman, L. Random Forests. Machine Learning **45**, 5–32 (2001)
