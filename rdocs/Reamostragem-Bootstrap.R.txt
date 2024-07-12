@@ -1,0 +1,137 @@
+
+### Metodos de Reamostragem - Bootstrap
+### Prof. George von Borries
+
+### PACOTES
+
+rm(list=ls())
+pkgs = installed.packages()
+
+if (!("boot" %in% pkgs)) install.packages("boot"); 
+library(boot)
+
+
+##### Exemplo 1 ####
+
+## Estimando o erro padrao da media amostral
+ 
+## Pop. Normal(5,4)
+
+set.seed(2224)
+x <- rnorm(100,5,2)
+2/sqrt(100)          # variancia da dist. da media amostral
+sqrt(var(x)/100)     # estimativa via 100 obs. da populacao
+
+## Bootstrap nao-parametrico
+
+np.boot.ep <- function(x,b){
+  x.boot <- replicate(b,sample(x,replace=T))
+  x.bar <- apply(x.boot,2,mean)
+  ep.boot <- sqrt(var(x.bar))
+  ep.boot
+}
+
+(bnp <- np.boot.ep(x,50000))  
+
+## Bootstrap parametrico
+
+p.boot.ep <- function(x,b){
+  mu.est <- mean(x)
+  sigma.est <- sqrt(var(x))
+  x.boot <- replicate(b,rnorm(length(x),mu.est,sigma.est))
+  x.bar <- apply(x.boot,2,mean)
+  ep.boot <- sqrt(var(x.bar))
+  ep.boot
+}
+
+(bpa <- p.boot.ep(x,50000))
+
+# Diferenças
+(0.2 - 0.203188)  # classica
+(0.2 - bnp) # Boot nao-parametrica
+(0.2 - bpa) # Boot parametrica
+
+
+#### Exemplo 2 ####
+
+## Estimativa da Media Harmonica 
+
+d <- c(43.64, 50.67, 33.56, 27.75,
+       43.35, 29.56, 38.83, 35.95,
+       20.01)
+mh <- function(x){length(x)/sum(1/(x))}
+mh(d)               
+
+# Gerando 1000 amostras bootstrap de d
+temp <- replicate(1000,sample(d,replace=T)) 
+# Media das medias harmonicas das amostras bootstrap
+d.boot <- mean(apply(temp,2,mh)) 
+# Desvio padrao das medias harmonicas
+sd.boot <- sqrt(var(apply(temp,2,mh)))
+# Estimativa bootstrap da media harmonica
+d.boot 
+sd.boot
+sd.boot
+
+
+#### Exemplo 3 ####
+
+# Pacote boot
+
+x <- as.vector(rgamma(20,1,0.01))
+mean(x)
+
+samplemean <- function(x,d){
+    return(mean(x[d]))
+}
+
+
+# library(boot)
+gam.boot <- boot(x,samplemean,R=5000)
+gam.boot
+
+boot.ci(gam.boot, conf=c(0.90,0.95),
+        type = c("norm","basic","perc","bca"))
+
+
+#### Exemplo 4 #####
+
+# Bootstrap em Regressao Linear
+
+set.seed(123)
+N  <- 100
+X1 <- rnorm(N, 175, 7)
+X2 <- rnorm(N,  30, 8)
+X3 <- abs(rnorm(N, 60, 30))
+Y  <- 0.5*X1 - 0.3*X2 - 0.4*X3 + 10 + rnorm(N, 0, 3)
+dfRegr <- data.frame(X1, X2, X3, Y)
+
+(fit <- lm(Y ~ X1 + X2 + X3, data=dfRegr))
+sqrt(diag(vcov(fit)))
+confint(fit)
+
+getRegr <- function(dat, idx) {
+  bsFit <- lm(Y ~ X1 + X2 + X3, subset=idx, data=dat)
+  coef(bsFit)
+}
+
+
+nR <- 1000
+(bsRegr <- boot(dfRegr, statistic=getRegr, R=nR))
+
+boot.ci(bsRegr, conf=0.95, type="bca", index=1)$bca
+boot.ci(bsRegr, conf=0.95, type="bca", index=2)$bca
+boot.ci(bsRegr, conf=0.95, type="bca", index=3)$bca
+boot.ci(bsRegr, conf=0.95, type="bca", index=4)$bca
+
+boot.ci(bsRegr, conf=0.95, type="perc", index=1)$perc
+boot.ci(bsRegr, conf=0.95, type="perc", index=2)$perc
+boot.ci(bsRegr, conf=0.95, type="perc", index=3)$perc
+boot.ci(bsRegr, conf=0.95, type="perc", index=4)$perc
+
+boot.ci(bsRegr, conf=0.95, type="norm", index=1)$norm
+boot.ci(bsRegr, conf=0.95, type="norm", index=2)$norm
+boot.ci(bsRegr, conf=0.95, type="norm", index=3)$norm
+boot.ci(bsRegr, conf=0.95, type="norm", index=4)$norm
+
+

@@ -1,0 +1,85 @@
+
+### TOPICOS 2 - RECONHECIMENTO DE PADROES
+### ANALISE DE COMPONENTES INDEPENDENTES             
+### PROFESSOR: GEORGE VON BORRIES
+
+
+### PACOTES
+
+rm(list=ls())
+pkgs = installed.packages()
+
+if (!("ggplot2" %in% pkgs)) install.packages("ggplot2"); 
+library(ggplot2)
+if (!("fastICA" %in% pkgs)) install.packages("fastICA"); 
+library(fastICA)  
+
+diretorio <- c("c:/001-DADOS/cursos/mult1/")
+
+Fetal <- read.table(paste0(diretorio,"FOETAL_ECG.dat",dec="."))
+fetal <- Fetal[,2:9] 
+str(fetal) 
+head(Fetal)
+dim(Fetal)
+
+
+par(mfrow = c(8, 1), 
+    mar=c(2,4,0,0),  # margens
+    oma=c(0,1,1,1))  
+plot(fetal[,1],type="l",ylab="1",xlab=" ",lwd=1.5,
+     font.lab = 2)
+plot(fetal[,2],type="l",ylab="2",,xlab=" ",lwd=1.5, 
+     font.lab = 2)
+plot(fetal[,3],type="l",ylab="3",xlab=" ",lwd=1.5, 
+     font.lab = 2)
+plot(fetal[,4],type="l",ylab="4",xlab=" ",lwd=1.5, 
+     font.lab = 2)
+plot(fetal[,5],type="l",ylab="5",xlab=" ",lwd=1.5, 
+     font.lab = 2)
+plot(fetal[,6],type="l",ylab="6",xlab=" ",lwd=1.5, 
+     font.lab = 2)
+plot(fetal[,7],type="l",ylab="7",xlab=" ",lwd=1.5, 
+     font.lab = 2)
+plot(fetal[,8],type="l",ylab="8",xlab=" ",lwd=1.5, 
+     font.lab = 2)
+
+
+IC <- fastICA(Fetal[,-1],8, 
+              alg.typ = "parallel", # multi-unit contrast 
+              fun ="exp", # forma da densidae exp ou logcosh
+              method ="C", # codigo em C ou R
+              row.norm = FALSE, # padronizacao de linhas
+              maxit = 200, # maximo de iteracoes
+              tol = 0.0001, # tolerancia de convergencia
+              verbose = TRUE) # output durante processamento
+
+# ver Izenman, pag. 567 para argumento 'fun' 
+
+names(IC) 
+
+#X pre-processed data matrix 
+#K pre-whitening matrix that projects data onto th first # principal components. 
+#W estimated un-mixing matrix (see definition in details) 
+#A estimated mixing matrix 
+#S estimated source matrix 
+
+par(mfrow = c(8, 1), 
+    mar=c(2,4,0,0),  # margens
+    oma=c(0,1,1,1))  
+plot(IC$S[,1],type="l",ylab="IC1",xlab=" ",lwd=1.5,  
+     col='blueviolet', font.lab = 2)
+plot(IC$S[,2],type="l",ylab="IC2",,xlab=" ",lwd=1.5, 
+     col=2, font.lab = 2)
+plot(IC$S[,3],type="l",ylab="IC3",xlab=" ",lwd=1.5, 
+     col=2, font.lab = 2)
+plot(IC$S[,4],type="l",ylab="IC4",xlab=" ",lwd=1.5, 
+     col=2, font.lab = 2)
+plot(IC$S[,5],type="l",ylab="IC5",xlab=" ",lwd=1.5, 
+     col=4, font.lab = 2)
+plot(IC$S[,6],type="l",ylab="IC6",xlab=" ",lwd=1.5, 
+     col=2, font.lab = 2)
+plot(IC$S[,7],type="l",ylab="IC7",xlab=" ",lwd=1.5, 
+     col=1, font.lab = 2)
+plot(IC$S[,8],type="l",ylab="IC8",xlab=" ",lwd=1.5, 
+     col=4, font.lab = 2)
+

@@ -1,0 +1,137 @@
+
+###
+# Tópicos em Aprendizado Estatístico
+# Reconhecimento de Padroes  
+# Prof. George von Borries.
+###
+
+### PACOTES
+
+rm(list=ls())
+pkgs = installed.packages()
+
+if (!("ggplot2" %in% pkgs)) install.packages("ggplot2"); 
+library(ggplot2)
+if (!("pls" %in% pkgs)) install.packages("pls"); 
+library(pls)
+if (!("DAAG" %in% pkgs)) install.packages("DAAG"); 
+library(DAAG)
+
+
+#### Exemplo 
+#### CV - PCR ####
+
+# library(pls)
+
+exsas <- as.data.frame(matrix(c( 0.37651,  2.30716,  0.75615,
+                                 0.74193, -0.88845,  1.15285,
+                                 4.18747,  2.17373,  1.42392,
+                                 0.96097,  0.57301,  0.27433,
+                                 -1.11161, -0.75225, -0.25410,
+                                 -1.38029, -1.31343, -0.04728,
+                                 1.28153, -0.13751,  1.00341,
+                                 -1.39242, -2.03615,  0.45518,
+                                 0.63741,  0.06183,  0.40699,
+                                 -2.52533, -1.23726, -0.91080,
+                                 2.44277,  3.61077, -0.82590),
+                              nrow = 11, ncol = 3, byrow = T))
+
+colnames(exsas) <- c("x1","x2","y")
+exsas
+dim(exsas)
+
+pcr_exsas1 <- pcr(y ~ x1 + x2, ncomp=1,  data=exsas, 
+                  validation="LOO", scale=T)
+pcr_exsas2 <- pcr(y ~ x1 + x2, ncomp=1,  data=exsas, 
+                   validation="CV", segments=11, scale=T)
+pcr_exsas3 <- pcr(y ~ x1 + x2, ncomp=1,  data=exsas, 
+                   validation="CV", segments=5, scale=T)
+pcr_exsas4 <- pcr(y ~ x1 + x2, ncomp=1,  data=exsas, 
+                   validation="CV", segments=2, scale=T)
+
+# Segmentos fixos
+RMSEP(pcr_exsas1, estimate="CV")  # k = 11 = LOOCV (n_k = 1)
+RMSEP(pcr_exsas2, estimate="CV")  # k = 11 = LOOCV (n_k = 1)
+RMSEP(pcr_exsas3, estimate="CV")  # k = 5 (n_k ~ 2)
+RMSEP(pcr_exsas4, estimate="CV")  # k = 2 (n_k ~ 5)
+
+
+# A cada rodada altera os segmentos se nao LOO
+
+pcr_exsas <- pcr(y ~ x1 + x2, ncomp=1,  data=exsas, 
+                  scale=T, validation = "CV",
+                  segments=5)
+summary(pcr_exsas)
+summary(pcr_exsas3)
+
+#### Exemplo 
+#### LOOCV - lm ####
+
+#library(DAAG); 
+attach(ironslag)
+
+a <- seq(10, 40, .1) 
+
+L1 <- lm(magnetic ~ chemical)
+plot(chemical, magnetic, main="Linear", pch=16)
+yhat1 <- L1$coef[1] + L1$coef[2] * a
+lines(a, yhat1, lwd=2)
+
+L2 <- lm(magnetic ~ chemical + I(chemical^2))
+plot(chemical, magnetic, main="Quadratic", pch=16)
+yhat2 <- L2$coef[1] + L2$coef[2] * a + 
+         L2$coef[3] * a^2
+lines(a, yhat2, lwd=2)
+
+L3 <- lm(log(magnetic) ~ chemical)
+plot(chemical, magnetic, main="Exponential", pch=16)
+logyhat3 <- L3$coef[1] + L3$coef[2] * a
+yhat3 <- exp(logyhat3)
+lines(a, yhat3, lwd=2)
+
+L4 <- lm(log(magnetic) ~ log(chemical))
+plot(log(chemical), log(magnetic), main="Log-Log", pch=16)
+logyhat4 <- L4$coef[1] + L4$coef[2] * log(a)
+lines(log(a), logyhat4, lwd=2)
+
+n <- length(magnetic) #in DAAG ironslag
+e1 <- e2 <- e3 <- e4 <- numeric(n)
+
+for (k in 1:n) {
+  y <- magnetic[-k]
+  x <- chemical[-k]
+  
+  J1 <- lm(y ~ x)
+  yhat1 <- J1$coef[1] + J1$coef[2] * chemical[k]
+  e1[k] <- magnetic[k] - yhat1
+  
+  J2 <- lm(y ~ x + I(x^2))
+  yhat2 <- J2$coef[1] + J2$coef[2] * chemical[k] +
+    J2$coef[3] * chemical[k]^2
+  e2[k] <- magnetic[k] - yhat2
+  
+  J3 <- lm(log(y) ~ x)
+  logyhat3 <- J3$coef[1] + J3$coef[2] * chemical[k]
+  yhat3 <- exp(logyhat3)
+  e3[k] <- magnetic[k] - yhat3
+  
+  J4 <- lm(log(y) ~ log(x))
+  logyhat4 <- J4$coef[1] + J4$coef[2] * log(chemical[k])
+  yhat4 <- exp(logyhat4)
+  e4[k] <- magnetic[k] - yhat4
+}
+
+(cvmse <- c(mean(e1^2), mean(e2^2), 
+           mean(e3^2), mean(e4^2)))
+(cvrmse <- sqrt(cvmse))
+
+
+ggplot(ironslag, aes(chemical,magnetic)) +
+  geom_point() +
+  geom_smooth(method='lm', formula=y ~ x + I(x^2),
+              fill="cyan") +
+  geom_smooth(method='lm', formula=y ~ x, 
+              color="DarkGreen", fill="green" )
+
+# ou  geom_smooth(method='lm', formula=y ~ poly(x,2))
+

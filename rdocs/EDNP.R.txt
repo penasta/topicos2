@@ -1,0 +1,449 @@
+
+### TOPICOS 2 - RECONHECIMENTO DE PADROES
+### ESTIMACAO NAO PARAMETRICA DE DENSIDADES             
+### PROFESSOR: GEORGE VON BORRIES
+
+
+### PACOTES
+
+rm(list=ls())
+pkgs = installed.packages()
+
+if (!("ggplot2" %in% pkgs)) install.packages("ggplot2"); 
+library(ggplot2)
+if (!("class" %in% pkgs)) install.packages("class"); 
+library(class) 
+if (!("ks" %in% pkgs)) install.packages("ks"); 
+library(ks) 
+if (!("mclust" %in% pkgs)) install.packages("mclust"); 
+library(mclust)  
+if (!("proxy" %in% pkgs)) install.packages("proxy"); 
+library(proxy) 
+if (!("kdecopula" %in% pkgs)) install.packages("kdecopula"); 
+library(kdecopula)
+
+
+#### HISTOGRAMA ####
+
+data("faithful")
+head(faithful)
+
+fe <- faithful$eruptions
+
+par(mfrow = c(1, 1))
+
+hde <- hist(fe)
+hde$breaks
+hde$counts
+
+par(mfrow = c(2, 3))
+
+for(i in 1:3){
+  h <- i/4
+  bk <- (max(fe) - min(fe)) / h
+  hist(fe, probability = T, breaks = bk,
+       col = "blue",
+       main = paste0("h = ",h))
+  rug(fe)
+}
+
+for(i in 1:3){
+  h <- i/4
+  bk <- (max(fe) - min(fe)) / h
+  hist(fe, probability = F, breaks = bk,
+       col = "blue",
+       main = paste0("h = ",h))
+  rug(fe)
+}
+
+# Problema 1: Dependencia de t0
+
+set.seed(2024)
+u <- runif(n = 100)
+
+bk1 <- seq(0,1,by = 0.2)
+bk2 <- seq(-0.1, 1.1, by = 0.2)
+
+par(mfrow = c(1,2))
+
+hist(u, probability = T, breaks = bk1,
+     ylim = c(0,1.5), col = 'blue',
+     main = 't0 = 0, h = 0.2',
+     xlab = 'runif(100,0,1)')
+rug(u)
+abline(h = 1, col = 'red')
+
+hist(u, probability = T, breaks = bk2,
+     ylim = c(0,1.5), col = 'blue',
+     main = 't0 = -0.1, h = 0.2',
+     xlab = 'runif(100,0,1)')
+rug(u)
+abline(h = 1, col = 'red')
+
+# Solucao: Dependencia de t0
+
+par(mfrow = c(2,2))
+
+set.seed(202402)
+nr <- rnorm(100000)
+
+plot(density(nr, 
+             kernel = c("rectangular"),
+             adjust = 30),
+     main = '', lwd = 1.5,
+     ylim = c(0,0.4))
+
+plot(density(nr, 
+             kernel = c("rectangular"),
+             adjust = 20),
+     main = '', lwd = 1.5,
+     ylim = c(0,0.4))
+
+plot(density(nr, 
+             kernel = c("rectangular")),
+     main = 'h otimo', lwd = 1.5,
+     ylim = c(0,0.4))
+
+plot(density(nr, 
+             kernel = c("rectangular"),
+             adjust = 0.2),
+     main = '', lwd = 1.5,
+     ylim = c(0,0.4))
+
+# Problema 2: 
+
+plot(density(rnorm(100), 
+             kernel = c("rectangular"),
+             bw = 0.09, adjust = 1),
+     main = '', lwd = 1.5,
+     ylim = c(0,0.5))
+
+
+plot(density(rnorm(1000), 
+             kernel = c("rectangular"),
+             bw = 0.09, adjust = 1),
+     main = '', lwd = 1.5,
+     ylim = c(0,0.5))
+
+
+plot(density(rnorm(10000), 
+             kernel = c("rectangular"),
+             bw = 0.09, adjust = 1),
+     main = '', lwd = 1.5,
+     ylim = c(0,0.5))
+
+
+plot(density(rnorm(100000), 
+             kernel = c("rectangular"),
+             bw = 0.09, adjust = 1),
+     main = '', lwd = 1.5,
+     ylim = c(0,0.5))
+
+
+#### Kernel ####
+
+par(mfrow = c(2,4))
+
+plot(density(fe,
+             kernel = c("gaussian")),
+             main = 'k gaussian', lwd = 1.5,
+             ylim = c(0,0.6),
+             xlab = '')
+
+plot(density(fe,
+             kernel = c("epanechnikov")),
+     main = 'k epanechnikov', lwd = 1.5,
+     ylim = c(0,0.6),
+     xlab = '')
+
+plot(density(fe,
+             kernel = c("rectangular")),
+     main = 'k rectangular', lwd = 1.5,
+     ylim = c(0,0.6),
+     xlab = '')
+
+plot(density(fe,
+             kernel = c("triangular")),
+     main = 'k triangular', lwd = 1.5,
+     ylim = c(0,0.6),
+     xlab = '')
+
+plot(density(fe,
+             kernel = c("biweight")),
+     main = 'k biweight', lwd = 1.5,
+     ylim = c(0,0.6),
+     xlab = '')
+
+plot(density(fe,
+             kernel = c("cosine")),
+     main = 'k consine', lwd = 1.5,
+     ylim = c(0,0.6),
+     xlab = '')
+
+plot(density(fe,
+             kernel = c("optcosine")),
+     main = 'k optcosine', lwd = 1.5,
+     ylim = c(0,0.6),
+     xlab = '')
+
+# h_otimo
+
+bw.nrd0(fe) # default in density
+bw.nrd(fe)  # normal
+bw.ucv(fe)  # cross-validation
+bw.SJ(fe)   # dpi: directed plug-in
+
+par(mfrow = c(1,1))
+
+plot(density(fe,
+             kernel = c("gaussian")),
+     main = 'k gaussian', lwd = 2,
+     ylim = c(0,0.6))
+lines(density(fe,kernel = c("gaussian"), bw = 0.394293), col = 'red',lwd=2)
+lines(density(fe,kernel = c("gaussian"), bw = 0.1019193), col = 'blue',lwd=2)
+lines(density(fe,kernel = c("gaussian"), bw = 0.1400435), col = 'green',lwd=2)
+lines(density(fe,kernel = c("gaussian"), bw = 0.1400435, adjust = 2), col = 'pink',lwd=2)
+
+# estimacao multivariada
+
+head(faithful)
+
+(He <- ks::Hpi(faithful))
+kdeHe <- ks::kde(faithful, H=He)
+plot(kdeHe, display = 'filled.contour2', 
+     cont = c(25,5,75))
+
+plot(kdeHe, display = 'persp')
+
+image(kdeHe$eval.points[[1]],kdeHe$eval.points[[2]], 
+      kdeHe$estimate, xlab = 'Eruptions', 
+      ylab = 'waiting')
+points(kdeHe$x)
+
+#### KNN ####
+
+# Exemplo 1: Slide
+
+x <-  c(-0.9,-0.5, 0, 0.5, 1, 2, 0)
+y <-  c( 0,  2  , 1, 1  , 1, 0, 0)
+c <- c(2,2,4,2,4,4,3)
+
+dados <- as.data.frame(cbind(c,x,y))
+
+euclidean <- function(a,b) sqrt(sum((a-b)^2))
+
+euclidean(dados[1,2:3],dados[7,2:3])
+euclidean(dados[2,2:3],dados[7,2:3])
+euclidean(dados[3,2:3],dados[7,2:3])
+euclidean(dados[4,2:3],dados[7,2:3])
+euclidean(dados[5,2:3],dados[7,2:3])
+euclidean(dados[6,2:3],dados[7,2:3])
+
+ggplot(dados, aes(x=x,y=y)) +
+  geom_point(size=8,col=c) + 
+  xlim(-1,2) + ylim(-1,2.5) +
+  theme(axis.text = element_text(face="bold", size=12),
+        axis.title = element_text(face="bold", size=14)) +
+  geom_segment(aes(x=0,y=0,xend=-0.9,yend=0),
+               color=2) +
+  geom_segment(aes(x=0,y=0,xend= -0.5,yend=2),
+               color=2) +
+  geom_segment(aes(x=0,y=0,xend= 0,yend=1),
+               color=4) +
+  geom_segment(aes(x=0,y=0,xend= 0.5,yend=1),
+               color=2) +
+  geom_segment(aes(x=0,y=0,xend= 1,yend=1),
+               color=4) +
+  geom_segment(aes(x=0,y=0,xend= 2,yend=0),
+               color=4) + 
+  annotate("text",-0.5, 0.1 ,label="de=0.9",color = 2) +
+  annotate("text",-0.5, 1   ,label="de=2.06",color = 2) +
+  annotate("text", 0.1, 0.75,label="de=1",color = 4) +
+  annotate("text", 0.6, 0.8 ,label="de=1.12",color = 2) +
+  annotate("text", 1  , 0.75,label="de=1.41",color = 4) +
+  annotate("text", 1  , 0.1 ,label="de=2",color = 4) +
+  annotate("text", -0.5,-0.5,label="de = Dist. Euclideana")
+
+
+knn.pred1 <- knn(dados[1:6,2:3],dados[7,2:3],
+                 dados[1:6,1],k=1)
+ifelse(knn.pred1 == 2, 'vermelho', 'azul')
+
+knn.pred2 <- knn(dados[1:6,2:3],dados[7,2:3],
+                 dados[1:6,1],k=2)
+ifelse(knn.pred2 == 2, 'vermelho', 'azul') # sorteio
+
+knn.pred3 <- knn(dados[1:6,2:3],dados[7,2:3],
+                 dados[1:6,1],k=3)
+ifelse(knn.pred3 == 2, 'vermelho', 'azul')
+
+
+knn.pred4 <- knn(dados[1:6,2:3],dados[7,2:3],
+                 dados[1:6,1],k=4)
+ifelse(knn.pred4 == 2, 'vermelho', 'azul') # sorteio
+
+
+knn.pred5 <- knn(dados[1:6,2:3],dados[7,2:3],
+                 dados[1:6,1],k=5)
+ifelse(knn.pred5 == 2, 'vermelho', 'azul')
+
+
+knn.pred6 <- knn(dados[1:6,2:3],dados[7,2:3],
+                 dados[1:6,1],k=6)
+ifelse(knn.pred6 == 2, 'vermelho', 'azul') # sorteio
+
+
+# Exemplo 2: Exercicio 2.7 
+#            James et al., pags.155/157
+
+X <- matrix(c(0,3,0,  2,0,0, 0,1,3, 
+              0,1,2, -1,0,1, 1,1,1), 6,3, byrow = T)
+
+Y <- c(rep("red",3),rep("green",2),"red")
+
+cbind(X,Y)
+
+X.test <- matrix(c(0,0,0),1,3, byrow = T)
+X.test
+
+euclidean <- function(a,b) sqrt(sum((a-b)^2))
+
+euclidean(X[1,],X.test)
+euclidean(X[2,],X.test)
+euclidean(X[3,],X.test)
+euclidean(X[4,],X.test)
+euclidean(X[5,],X.test)
+euclidean(X[6,],X.test)
+
+knn.pred1 <- knn(X,X.test,Y,k=1)
+knn.pred1
+knn.pred3 <- knn(X,X.test,Y,k=3)
+knn.pred3
+
+# Exemplo 3: Iris 
+
+train <- rbind(iris3[1:25,,1], iris3[1:25,,2], iris3[1:25,,3])
+test <- rbind(iris3[26:50,,1], iris3[26:50,,2], iris3[26:50,,3])
+cl <- factor(c(rep("s",25), rep("c",25), rep("v",25)))
+knniris <- knn(train, test, cl, k = 3, prob=TRUE)
+# attributes(.Last.value)
+
+mclust::adjustedRandIndex(knniris,cl)
+
+train <- rbind(iris3[,,1], iris3[,,2], iris3[,,3])
+cl <- factor(c(rep("s",50), rep("c",50), rep("v",50)))
+knniriscv <- knn.cv(train, cl, k = 3, prob = TRUE)
+# attributes(.Last.value)
+
+mclust::adjustedRandIndex(knniriscv,cl)
+
+# Observacao: variáveis nominais (binarias)
+
+# library("proxy")
+
+summary(pr_DB)
+pr_DB$get_entry("Jaccard")
+pr_DB$get_entry("Dice")
+
+
+#### Naive Bayes ####
+
+#### .... Toy Example ####
+# Baseado no exemplo de James et al
+
+par(mfrow = c(2,3))
+
+# Gerando dados
+
+cl1 <- rep(1,100)
+set.seed(202416)
+x11 <- rnorm(100,0,1)
+x21 <- rnorm(100,2,sqrt(0.5))
+x31 <- sample(c(rep(1,20),rep(2,30),rep(3,50)),
+              size = 100,  replace = F)
+
+
+cl2 <- rep(2,100)
+x12 <- rnorm(100,-2,1)
+x22 <- rnorm(100,0,sqrt(1.5))
+x32 <- sample(c(rep(1,60),rep(2,10),rep(3,30)),
+              size = 100,  replace = F)
+
+data <- rbind(cbind(cl1,x11,x21,x31),
+              cbind(cl2,x12,x22,x32))
+
+dataf <- data.frame(data)
+colnames(dataf) <- c('classe','x1','x2','x3')
+
+p1h <- sum(dataf[,1] == 1) / nrow(dataf)
+p2h <- 1 - p1h
+
+# Nova classificacao para dados gerados
+# de x0 = (0.4, 1.5, 1)
+
+# Para w1: 
+
+histx11 <- hist(x11,prob=T, main = '')
+histx11$breaks
+histx11$counts
+
+histx21 <- hist(x21,prob=T, main = '')
+histx21$breaks
+histx21$counts
+
+table(x31)
+hist(x31, main = '')
+
+fhx11 <- 19  # obs no intervalo que inclui 0.4
+fhx21 <- (19 + 26) / 2 # obs no intervalo que inclui 1.5
+fhx31 <- 20
+
+(px1.w1 <- fhx11 / 100)
+(px2.w1 <- fhx21 / 100)
+(px3.w1 <- fhx31 / 100)
+
+# Para w2:
+
+histx12 <- hist(x12,prob=T, main = '')
+histx12$breaks
+histx12$counts
+
+histx22 <- hist(x22,prob=T, main = '')
+histx22$breaks
+histx22$counts
+
+table(x32)
+hist(x32, main = '')
+
+fhx12 <- 1   # obs no intervalo que inclui 0.4
+fhx22 <- 12  # obs no intervalo que inclui 1.5
+fhx32 <- 60
+
+(px1.w2 <- fhx12 / 100)
+(px2.w2 <- fhx22 / 100)
+(px3.w2 <- fhx32 / 100)
+
+
+(p.w1 <- px1.w1 * px2.w1 * px3.w1 * p1h)
+(p.w2 <- px1.w2 * px2.w2 * px3.w2 * p2h)
+
+(p.w1.x0 <- p.w1 / (p.w1 + p.w2))
+(p.w2.x0 <- p.w2 / (p.w1 + p.w2))
+
+# Conclusao: classificar x0 em w1.
+
+
+#### Copulas ####
+
+# Nagler (2018)
+
+fu <- apply(faithful, 2, rank) / (nrow(faithful)+1)
+head(faithful)
+head(fu) # dados com margens uniformes
+
+fitcop <- kdecop(fu)
+summary(fitcop)
+
+plot(fitcop)
+contour(fitcop, margins = 'unif')
+contour(fitcop)
